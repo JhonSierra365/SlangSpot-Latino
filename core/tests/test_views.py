@@ -46,7 +46,7 @@ class AuthViewsTest(TestCase):
         """Test: Vista de registro con GET"""
         response = self.client.get(reverse('core:register'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'core/registro.html')
+        self.assertTemplateUsed(response, 'core/test_registro.html')
         self.assertIn('form', response.context)
     
     def test_registro_view_post_valid(self):

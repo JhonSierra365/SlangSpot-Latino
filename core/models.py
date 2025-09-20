@@ -11,6 +11,19 @@ from django.core.exceptions import ValidationError
 # Create your models here.
 
 class BaseModel(models.Model):
+    """
+    Modelo base abstracto que proporciona campos comunes para soft delete y timestamps.
+
+    Atributos:
+        id (AutoField): Identificador único del registro.
+        created_at (DateTimeField): Fecha y hora de creación del registro.
+        updated_at (DateTimeField): Fecha y hora de última actualización.
+        is_active (BooleanField): Indica si el registro está activo.
+        deleted_at (DateTimeField): Fecha y hora de eliminación suave (opcional).
+
+    Meta:
+        abstract (bool): Indica que esta clase es abstracta y no crea tabla.
+    """
     id = models.AutoField(primary_key=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -21,11 +34,30 @@ class BaseModel(models.Model):
         abstract = True
 
     def soft_delete(self):
+        """
+        Realiza una eliminación suave del registro.
+
+        Marca el registro como inactivo y establece la fecha de eliminación.
+        """
         self.is_active = False
         self.deleted_at = timezone.now()
         self.save()
 
 class Expression(BaseModel):
+    """
+    Modelo que representa una expresión o frase en español latino.
+
+    Atributos:
+        lesson (ForeignKey): Lección a la que pertenece la expresión (opcional).
+        text (CharField): Texto de la expresión.
+        meaning (TextField): Significado de la expresión (opcional).
+        example (TextField): Ejemplo de uso de la expresión (opcional).
+        audio (FileField): Archivo de audio con la pronunciación (opcional).
+
+    Relaciones:
+        lesson: Relación con el modelo Lesson.
+    """
+
     lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE, related_name='expressions', null=True, blank=True)
     text = models.CharField(max_length=200)
     meaning = models.TextField(null=True, blank=True)
@@ -33,9 +65,16 @@ class Expression(BaseModel):
     audio = models.FileField(upload_to='expression_audio/', null=True, blank=True)
 
     def __str__(self):
+        """Retorna una representación legible de la expresión."""
         return f"{self.text} - {self.lesson.title if self.lesson else ''}"
 
     def clean(self):
+        """
+        Valida que se proporcione al menos un significado o ejemplo.
+
+        Lanza:
+            ValidationError: Si no se proporciona ni significado ni ejemplo.
+        """
         if not self.meaning and not self.example:
             raise ValidationError("Debe proporcionar al menos un significado o un ejemplo de uso.")
 
@@ -87,7 +126,7 @@ class Lesson(BaseModel):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
-    content = models.TextField(default='Contenido pendiente')
+    content = models.TextField()
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='slang')
     country = models.CharField(max_length=50, choices=COUNTRY_CHOICES)
@@ -112,43 +151,107 @@ class Lesson(BaseModel):
         return dict(self.COUNTRY_CHOICES).get(self.country, self.country)
     
     def get_cover_image_url(self):
+        """
+        Obtiene la URL de la imagen de portada de la lección.
+
+        Retorna:
+            str: URL de la imagen de portada o URL de imagen por defecto.
+        """
         if self.cover_image and hasattr(self.cover_image, 'url'):
             return self.cover_image.url
         return '/static/core/images/default-cover.jpg'
-    
+
     def get_video_embed_url(self):
-        """Convierte URLs de YouTube al formato de embed correcto"""
+        """
+        Convierte URLs de YouTube al formato de embed correcto.
+
+        Soporta diferentes formatos de URLs de YouTube y retorna la URL
+        de embed correspondiente.
+
+        Retorna:
+            str or None: URL de embed de YouTube o None si no hay video_url.
+        """
         if not self.video_url:
             return None
-        
+
         # Si ya es una URL de embed, la devuelve tal como está
-        if 'youtube.com/embed' in self.video_url:
+        if 'youtube.com/embed' in self.video_url or 'youtu.be/embed' in self.video_url:
             return self.video_url
-        
+
         # Extrae el ID del video de diferentes formatos de URL de YouTube
         import re
-        
-        # Patrones para diferentes formatos de URL de YouTube
+
+        # Patrones más completos para diferentes formatos de URL de YouTube
         patterns = [
-            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)',
+            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)',
             r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
+            r'youtube\.com\/watch\?[^&]*v=([^&\n?#]+)',
+            r'youtu\.be\/([^&\n?#]+)',
+            r'youtube\.com\/embed\/([^&\n?#]+)',
+            r'youtube\.com\/v\/([^&\n?#]+)',
         ]
-        
+
         for pattern in patterns:
-            match = re.search(pattern, self.video_url)
+            match = re.search(pattern, self.video_url, re.IGNORECASE)
             if match:
                 video_id = match.group(1)
+                # Limpiar el ID del video (remover parámetros adicionales)
+                video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
                 return f'https://www.youtube.com/embed/{video_id}'
-        
-        # Si no coincide con ningún patrón, devuelve la URL original
-        return self.video_url
+
+        # Si no coincide con ningún patrón, intentar extraer ID directamente
+        # para casos como URLs malformadas
+        url_lower = self.video_url.lower()
+        if 'youtube.com' in url_lower or 'youtu.be' in url_lower:
+            # Buscar cualquier secuencia de 11 caracteres que podría ser un ID de YouTube
+            potential_ids = re.findall(r'[a-zA-Z0-9_-]{11}', self.video_url)
+            if potential_ids:
+                return f'https://www.youtube.com/embed/{potential_ids[0]}'
+
+        # Si no se puede convertir, devolver None para no mostrar el iframe
+        return None
+
+    def get_video_thumbnail_url(self):
+        """
+        Obtiene la URL de la miniatura del video de YouTube.
+
+        Retorna:
+            str or None: URL de la miniatura o None si no hay video_url.
+        """
+        if not self.video_url:
+            return None
+
+        # Extraer el ID del video usando la misma lógica que get_video_embed_url
+        import re
+
+        patterns = [
+            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)',
+            r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
+            r'youtube\.com\/watch\?[^&]*v=([^&\n?#]+)',
+            r'youtu\.be\/([^&\n?#]+)',
+            r'youtube\.com\/embed\/([^&\n?#]+)',
+            r'youtube\.com\/v\/([^&\n?#]+)',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, self.video_url, re.IGNORECASE)
+            if match:
+                video_id = match.group(1)
+                # Limpiar el ID del video
+                video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
+                # Retornar URL de miniatura de máxima calidad, con fallback
+                return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+
+        return None
     
     def __str__(self):
         return self.title
 
     def clean(self):
-        if not self.content or self.content.strip() == '' or self.content == 'Contenido pendiente':
+        if not self.content or self.content.strip() == '':
             raise ValidationError("El contenido de la lección no puede estar vacío.")
+        if self.content == 'Contenido pendiente':
+            raise ValidationError("Por favor, escribe el contenido de la lección.")
 
     class Meta:
         ordering = ['-created_at']

@@ -81,8 +81,41 @@ class LessonForm(forms.ModelForm):
             'cover_image': 'Imagen de Portada',
         }
         help_texts = {
-            'video_url': '📹 Copia y pega la URL completa del video de YouTube. Funciona con cualquier formato: youtube.com/watch, youtu.be, etc.',
+            'video_url': '📹 Copia y pega la URL completa del video de YouTube. Formatos soportados: https://www.youtube.com/watch?v=VIDEO_ID, https://youtu.be/VIDEO_ID, https://www.youtube.com/embed/VIDEO_ID',
         }
+
+    def clean_video_url(self):
+        """Valida que la URL del video sea de YouTube y tenga un formato válido."""
+        video_url = self.cleaned_data.get('video_url')
+        if video_url:
+            import re
+            # Verificar si es una URL de YouTube válida
+            youtube_patterns = [
+                r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)',
+                r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
+                r'youtu\.be\/([^&\n?#]+)',
+            ]
+
+            is_youtube_url = False
+            for pattern in youtube_patterns:
+                if re.search(pattern, video_url, re.IGNORECASE):
+                    is_youtube_url = True
+                    break
+
+            if not is_youtube_url and ('youtube.com' in video_url.lower() or 'youtu.be' in video_url.lower()):
+                # Es una URL de YouTube pero no coincide con los patrones
+                potential_ids = re.findall(r'[a-zA-Z0-9_-]{11}', video_url)
+                if not potential_ids:
+                    raise forms.ValidationError(
+                        'Formato de URL de YouTube no reconocido. Usa uno de estos formatos: '
+                        'https://www.youtube.com/watch?v=VIDEO_ID, '
+                        'https://youtu.be/VIDEO_ID, '
+                        'https://www.youtube.com/embed/VIDEO_ID'
+                    )
+            elif not is_youtube_url:
+                raise forms.ValidationError('Solo se permiten URLs de YouTube.')
+
+        return video_url
 
 class ExpressionForm(forms.ModelForm):
     class Meta:

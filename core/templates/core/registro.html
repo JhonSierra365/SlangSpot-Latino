@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
-{% load socialaccount %}
 {% load static %}
+
+<!-- Test template without social account -->
 
 {% block title %}Registro - SlangSpot Latino{% endblock %}
 
@@ -17,19 +18,25 @@
             </div>
 
             <div class="auth-form-container">
-                <div class="social-auth">
+                <!-- Social auth temporarily disabled for testing -->
+                <!-- <div class="social-auth">
                     <h3 class="social-auth-title">Regístrate rápidamente</h3>
-                    <a href="{% provider_login_url 'google' %}" class="social-btn google-btn">
-                        <i class="fab fa-google"></i>
-                        <span>Registrarse con Google</span>
-                    </a>
+                    {% get_providers as socialaccount_providers %}
+                    {% for provider in socialaccount_providers %}
+                        {% if provider.id == "google" %}
+                            <a href="{% provider_login_url provider.id %}" class="social-btn google-btn">
+                                <i class="fab fa-google"></i>
+                                <span>Registrarse con Google</span>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
                 </div>
 
                 <div class="auth-divider">
                     <span class="divider-line"></span>
                     <span class="divider-text">o regístrate con tu email</span>
                     <span class="divider-line"></span>
-                </div>
+                </div> -->
 
                 <form method="post" class="auth-form" novalidate>
                     {% csrf_token %}

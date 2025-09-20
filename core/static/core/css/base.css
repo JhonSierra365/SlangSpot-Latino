@@ -1,0 +1,177 @@
+/* Base styles for header, main, footer */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: #023047;
+    background: #FEFAE0;
+}
+
+/* Header */
+header {
+    background: #FFB703;
+    border-bottom: 1px solid #E6A500;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #023047;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+.logo-image {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+}
+
+.logo-text {
+    font-weight: 600;
+}
+
+.logo:hover {
+    color: #023047;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    color: #023047;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #023047;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.user-greeting {
+    color: #6C757D;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.auth-btn {
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.auth-btn.login {
+    color: #023047;
+    background: transparent;
+}
+
+.auth-btn.login:hover {
+    background: #FEFAE0;
+    color: #FFB703;
+    text-decoration: none;
+}
+
+.auth-btn.signup {
+    background: #FFB703;
+    color: #023047;
+}
+
+.auth-btn.signup:hover {
+    background: #E6A500;
+    color: #023047;
+    text-decoration: none;
+}
+
+.auth-btn.logout {
+    color: #6C757D;
+    background: transparent;
+}
+
+.auth-btn.logout:hover {
+    color: #DC3545;
+    text-decoration: none;
+}
+
+/* Main */
+main {
+    min-height: calc(100vh - 140px);
+}
+
+/* Footer */
+footer {
+    background: #023047;
+    color: white !important;
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.footer-content p {
+    color: white !important;
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 1rem;
+    }
+
+    .nav-links {
+        gap: 20px;
+    }
+
+    .auth-buttons {
+        gap: 10px;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
+    }
+}

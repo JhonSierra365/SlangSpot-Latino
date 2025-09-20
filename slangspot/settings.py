@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Necesario para allauth
+    'compressor',  # Para compresión de archivos estáticos
     'core',
     'allauth',
     'allauth.account',
@@ -90,12 +92,46 @@ WSGI_APPLICATION = 'slangspot.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Configuración de base de datos con soporte para PostgreSQL en producción
+DATABASE_URL = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
+
+if DATABASE_URL.startswith('sqlite:///'):
+    # SQLite para desarrollo
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / DATABASE_URL.replace('sqlite:///', ''),
+        }
     }
-}
+elif DATABASE_URL.startswith('postgresql://'):
+    # PostgreSQL para producción
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+
+    # Optimizaciones para PostgreSQL
+    DATABASES['default']['OPTIONS'] = {
+        'client_encoding': 'UTF8',
+        'default_transaction_isolation': 'read_committed',
+        'timezone': 'UTC',
+    }
+
+    # Configuración de pool de conexiones para PostgreSQL
+    DATABASES['default']['CONN_MAX_AGE'] = 60
+    DATABASES['default']['CONN_HEALTH_CHECKS'] = True
+else:
+    # Fallback a SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -140,14 +176,22 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Optimización de archivos estáticos
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',  # Para archivos comprimidos
 ]
 
-# Configuración de compresión de archivos estáticos
-COMPRESS_ENABLED = True
+# Configuración condicional de STATICFILES_STORAGE
+if DEBUG:
+    # En desarrollo, usar cache simple
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
+else:
+    # En producción, usar manifest comprimido para versionado y compresión
+    STATICFILES_STORAGE = 'compressor.storage.CompressedManifestStaticFilesStorage'
+
+# Configuración de compresión de archivos estáticos (requiere django-compressor)
+COMPRESS_ENABLED = not DEBUG  # Solo en producción
 COMPRESS_CSS_FILTERS = [
     'compressor.filters.css_default.CssAbsoluteFilter',
     'compressor.filters.cssmin.rCSSMinFilter',
@@ -155,9 +199,6 @@ COMPRESS_CSS_FILTERS = [
 COMPRESS_JS_FILTERS = [
     'compressor.filters.jsmin.JSMinFilter',
 ]
-
-# Configuración de cache para archivos estáticos
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
 
 # Configuración de archivos de medios
 MEDIA_URL = '/media/'
@@ -177,7 +218,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS settings - Comentado ya que no se usa
 # CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)  # Solo para desarrollo
 
-LOGIN_URL = 'login'
+LOGIN_URL = 'core:login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
@@ -252,6 +293,21 @@ CACHES = {
         'TIMEOUT': 86400,  # 24 horas
     }
 }
+
+# Configuración específica para PostgreSQL en producción
+if DATABASE_URL.startswith('postgresql://'):
+    # Usar Redis para caché en producción si está disponible
+    REDIS_URL = config('REDIS_URL', default=None)
+    if REDIS_URL:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+                'LOCATION': REDIS_URL,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                }
+            }
+        }
 
 # Configuración de Channels - Comentado ya que no se usa
 # ASGI_APPLICATION = 'slangspot.asgi.application'
@@ -348,3 +404,38 @@ RATE_LIMIT_WINDOW = 60  # Ventana de tiempo en segundos
 
 # Configuración de cache de sesiones
 SESSION_CACHE_ALIAS = 'sessions'
+
+# ================================
+# CONFIGURACIONES PARA TESTING
+# ================================
+
+# Configuración específica para tests con LiveServerTestCase
+if 'test' in sys.argv:
+    # Usar base de datos en memoria para tests
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+
+    # Deshabilitar compresión en tests
+    COMPRESS_ENABLED = False
+
+    # Configuración de email para tests
+    EMAIL_BACKEND = 'django.core.mail.backends.locmem.LocMemBackend'
+
+    # Configuración de logging para tests
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'WARNING',
+            },
+        },
+    }

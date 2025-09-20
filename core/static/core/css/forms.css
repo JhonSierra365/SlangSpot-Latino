@@ -1,0 +1,310 @@
+/* Form styles for create/edit forms */
+.cover-image-preview {
+    width: 100%;
+    height: 200px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+.cover-image-preview.active {
+    display: block;
+}
+
+.form-section {
+    background: #FEFAE0;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.form-section label {
+    color: #023047;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-section input[type="text"],
+.form-section input[type="url"],
+.form-section select,
+.form-section textarea {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.75rem;
+    width: 100%;
+    transition: all 0.2s;
+    background: white;
+    color: #023047;
+}
+
+.form-section input[type="text"]:focus,
+.form-section input[type="url"]:focus,
+.form-section select:focus,
+.form-section textarea:focus {
+    border-color: #FFB703;
+    box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.1);
+}
+
+.form-section textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.difficulty-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.difficulty-beginner { background: #e6f4ea; color: #1e7e34; }
+.difficulty-intermediate { background: #fff3cd; color: #856404; }
+.difficulty-advanced { background: #f8d7da; color: #721c24; }
+
+/* Create lesson container */
+.create-lesson-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #FEFAE0;
+    color: #023047;
+}
+
+/* Form header */
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: #FEFAE0;
+    border-radius: 15px;
+    border: 2px solid #FFB703;
+}
+
+.form-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #023047;
+}
+
+.form-header p {
+    font-size: 1.1rem;
+    color: #023047;
+    opacity: 0.9;
+}
+
+/* Lesson form */
+.lesson-form {
+    background: #FEFAE0;
+    color: #023047;
+}
+
+/* Form sections */
+.form-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-section {
+    background: #FEFAE0;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    border: 2px solid #FFB703;
+}
+
+.form-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #023047;
+    text-align: center;
+}
+
+/* Form groups */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #023047;
+    font-size: 1.1rem;
+}
+
+/* Specific label overrides */
+.form-group label[for*="content"],
+.form-group label[for*="cultural_notes"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+    color: #023047 !important;
+    font-size: 1.1rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.form-group input[type="text"],
+.form-group input[type="url"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #FFB703;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: white;
+    color: #023047;
+    transition: all 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="url"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #FFB703;
+    box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.3);
+    background: white;
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Specific field overrides */
+.form-group textarea[name="content"],
+.form-group textarea[name="cultural_notes"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 150px !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+}
+
+.form-group textarea[name="content"] {
+    background: white;
+    color: #023047;
+    border: 2px solid #FFB703;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.form-group textarea[name="cultural_notes"] {
+    background: white;
+    color: #023047;
+    border: 2px solid #FFB703;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+/* Form actions */
+.form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 2rem;
+}
+
+.form-actions .btn {
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    min-width: 150px;
+    text-align: center;
+}
+
+/* Buttons */
+.btn.btn-primary {
+    background: #FFB703;
+    color: #023047;
+    border: 2px solid #FFB703;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn.btn-primary:hover {
+    background: #e6a800;
+    color: #023047;
+    transform: translateY(-2px);
+}
+
+.btn.btn-secondary {
+    background: transparent;
+    color: #023047;
+    border: 2px solid #023047;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn.btn-secondary:hover {
+    background: #023047;
+    color: #FFB703;
+    transform: translateY(-2px);
+}
+
+/* Error messages */
+.error-message {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .create-lesson-container {
+        padding: 1rem;
+    }
+
+    .form-header h1 {
+        font-size: 2rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+/* Color overrides */
+.create-lesson-container, .create-lesson-header, .create-lesson-form {
+    background: #FEFAE0;
+    color: #023047;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+    color: #023047;
+}
+
+/* Debug visual */
+.form-group {
+    border: 1px solid transparent;
+    padding: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group:hover {
+    border-color: #FFB703;
+    background: rgba(255, 183, 3, 0.05);
+}
+
+.lesson-form .form-group {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

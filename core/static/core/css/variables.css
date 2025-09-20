@@ -1,0 +1,36 @@
+:root {
+    /* Paleta Principal del Sitio - Paleta Memrise */
+    --azul-llamativo: #007BFF;
+    --rojo-cta: #DC3545;
+    --gris-texto: #212529;
+    --gris-claro: #F8F9FA;
+    --blanco: #FFFFFF;
+    --borde: #DEE2E6;
+
+    /* Paleta de Colombia para Autenticación - Actualizada */
+    --colombia-yellow: #FFC107;
+    --colombia-blue: #007BFF;
+    --colombia-red: #DC3545;
+
+    /* Variables globales */
+    --azul-hover: #0056B3;
+    --gris-medio: #E9ECEF;
+    --gris-oscuro: #6C757D;
+    --verde-exito: #28A745;
+    --rojo-error: #DC3545;
+    --amarillo-alerta: #FFC107;
+    --sombra-suave: 0 2px 4px rgba(0, 123, 255, 0.1);
+    --sombra-media: 0 4px 6px rgba(0, 123, 255, 0.1);
+    --sombra-fuerte: 0 10px 15px rgba(0, 123, 255, 0.1);
+    --transicion-rapida: all 0.3s ease;
+
+    /* Variables de colores */
+    --white: #FFFFFF;
+    --light-gray: #F8F9FA;
+    --dark-gray: #212529;
+    --text-color: #212529;
+    --shadow-sm: 0 2px 4px rgba(0, 123, 255, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 123, 255, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 123, 255, 0.1);
+    --transition: all 0.3s ease;
+}

@@ -1,6 +1,15 @@
 asgiref==3.8.1
+dj-database-url==2.1.0
 Django==5.2.3
 django-allauth==0.61.1
+django-compressor==4.4
+django-redis==5.4.0
 Pillow==10.1.0
+psycopg2-binary==2.9.7
 python-decouple==3.8
+selenium==4.15.2
 sqlparse==0.5.3
+
+# Development dependencies
+bandit==1.7.6
+flake8==7.0.0

@@ -18,12 +18,13 @@ def registro(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            # Specify the authentication backend explicitly
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, '¡Registro exitoso! Bienvenido a SlangSpot.')
             return redirect('home')
     else:
         form = CustomUserCreationForm()
-    return render(request, 'core/registro.html', {'form': form})
+    return render(request, 'core/test_registro.html', {'form': form})
 
 def login_view(request):
     if request.method == 'POST':
