@@ -1,12 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .validators import validate_file_size, validate_image_extension, validate_audio_extension
+from .validators import validate_file_size, validate_image_extension, validate_audio_extension, validate_youtube_url
 import uuid
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
+from urllib.parse import urlparse, parse_qs
+import re
+import bleach
 
 # Create your models here.
 
@@ -135,7 +138,7 @@ class Lesson(BaseModel):
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='slang')
     country = models.CharField(max_length=50, choices=COUNTRY_CHOICES)
-    video_url = models.URLField(blank=True, null=True)
+    video_url = models.URLField(blank=True, null=True, validators=[validate_youtube_url])
     cultural_notes = models.TextField(blank=True, null=True)
     cover_image = models.ImageField(
         upload_to=lesson_cover_path,
@@ -143,8 +146,6 @@ class Lesson(BaseModel):
         null=True,
         validators=[validate_file_size, validate_image_extension]
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def get_difficulty_display(self):
         return dict(self.LEVEL_CHOICES).get(self.level, self.level)
@@ -170,9 +171,6 @@ class Lesson(BaseModel):
         """
         Convierte URLs de YouTube al formato de embed correcto.
 
-        Soporta diferentes formatos de URLs de YouTube y retorna la URL
-        de embed correspondiente.
-
         Retorna:
             str or None: URL de embed de YouTube o None si no hay video_url.
         """
@@ -180,44 +178,23 @@ class Lesson(BaseModel):
             return None
 
         # Si ya es una URL de embed, la devuelve tal como está
-        if 'youtube.com/embed' in self.video_url or 'youtu.be/embed' in self.video_url:
+        if 'youtube.com/embed' in self.video_url:
             return self.video_url
 
-        # Extrae el ID del video de diferentes formatos de URL de YouTube
-        import re
+        # Parsear la URL
+        parsed = urlparse(self.video_url)
+        if 'youtube.com' in parsed.netloc or 'youtu.be' in parsed.netloc:
+            if parsed.netloc == 'youtu.be':
+                # youtu.be/short_id
+                video_id = parsed.path.lstrip('/')
+            else:
+                # youtube.com/watch?v=...
+                query = parse_qs(parsed.query)
+                video_id = query.get('v', [None])[0]
 
-        # Patrones más completos para diferentes formatos de URL de YouTube
-        patterns = [
-            r'(?:https?://)?(?:www\.)?youtube\.com/watch\?v=([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtu\.be/([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtube\.com/embed/([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtube\.com/v/([^&\n?#]+)',
-            r'youtube\.com/watch\?.*v=([^&\n?#]+)',
-            r'youtube\.com/watch\?[^&]*v=([^&\n?#]+)',
-        ]
+            if video_id and len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                return f'https://www.youtube.com/embed/{video_id}'
 
-        for pattern in patterns:
-            match = re.search(pattern, self.video_url, re.IGNORECASE)
-            if match:
-                video_id = match.group(1)
-                # Limpiar el ID del video (remover parámetros adicionales)
-                video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
-                # Validar que el ID tenga 11 caracteres (IDs de YouTube estándar)
-                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-                    return f'https://www.youtube.com/embed/{video_id}'
-
-        # Si no coincide con ningún patrón, intentar extraer ID directamente
-        # para casos como URLs malformadas
-        url_lower = self.video_url.lower()
-        if 'youtube.com' in url_lower or 'youtu.be' in url_lower:
-            # Buscar cualquier secuencia de 11 caracteres que podría ser un ID de YouTube
-            potential_ids = re.findall(r'[a-zA-Z0-9_-]{11}', self.video_url)
-            if potential_ids:
-                video_id = potential_ids[0]
-                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-                    return f'https://www.youtube.com/embed/{video_id}'
-
-        # Si no se puede convertir, devolver None para no mostrar el iframe
         return None
 
     def get_video_thumbnail_url(self):
@@ -227,33 +204,8 @@ class Lesson(BaseModel):
         Retorna:
             str or None: URL de la miniatura o None si no hay video_url.
         """
-        if not self.video_url:
-            return None
-
-        # Extraer el ID del video usando la misma lógica que get_video_embed_url
-        import re
-
-        patterns = [
-            r'(?:https?://)?(?:www\.)?youtube\.com/watch\?v=([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtu\.be/([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtube\.com/embed/([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtube\.com/v/([^&\n?#]+)',
-            r'youtube\.com/watch\?.*v=([^&\n?#]+)',
-            r'youtube\.com/watch\?[^&]*v=([^&\n?#]+)',
-        ]
-
-        for pattern in patterns:
-            match = re.search(pattern, self.video_url, re.IGNORECASE)
-            if match:
-                video_id = match.group(1)
-                # Limpiar el ID del video
-                video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
-                # Validar que el ID tenga 11 caracteres
-                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-                    # Retornar URL de miniatura de máxima calidad, con fallback a hqdefault si maxresdefault no existe
-                    return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
-
-        return None
+        from .utils import get_youtube_thumbnail_url
+        return get_youtube_thumbnail_url(self.video_url)
     
     def __str__(self):
         return self.title
@@ -263,6 +215,10 @@ class Lesson(BaseModel):
             raise ValidationError("El contenido de la lección no puede estar vacío.")
         if self.content == 'Contenido pendiente':
             raise ValidationError("Por favor, escribe el contenido de la lección.")
+        # Sanitizar HTML
+        allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a']
+        allowed_attrs = {'a': ['href', 'title']}
+        self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -303,6 +259,12 @@ class ForumPost(BaseModel):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+
+    def clean(self):
+        # Sanitizar HTML en contenido - permitir tags básicos pero no imágenes por seguridad
+        allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote']
+        allowed_attrs = {'a': ['href', 'title']}
+        self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     def get_absolute_url(self):
         return reverse('core:post_detail', kwargs={'pk': self.pk})
@@ -345,13 +307,17 @@ class Comment(BaseModel):
     def get_replies(self):
         return self.replies.filter(is_active=True).order_by('created_at')
 
-class UserProfile(models.Model):
+    def clean(self):
+        # Sanitizar HTML en contenido
+        allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'a']
+        allowed_attrs = {'a': ['href', 'title']}
+        self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+
+class UserProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True)
     preferred_language = models.CharField(max_length=50, default='es')
     learning_goals = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     reputation = models.IntegerField(default=0)
     website = models.URLField(max_length=200, blank=True)
@@ -425,42 +391,17 @@ class SiteSettings(BaseModel):
         Retorna:
             str or None: URL de la miniatura o None si no hay video_url o video_id.
         """
-        import re
+        from .utils import get_youtube_thumbnail_url, extract_youtube_video_id
 
         # Primero intentar usar el video_id directo si está disponible
         if self.video_explicativo_id and len(self.video_explicativo_id.strip()) > 0:
             video_id = self.video_explicativo_id.strip()
+            import re
             if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
                 return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
 
         # Si no hay video_id, intentar extraer de la URL
-        video_url = self.video_explicativo_url
-        if not video_url:
-            return None
-
-        # Extraer el ID del video usando la misma lógica que get_video_embed_url
-
-        patterns = [
-            r'(?:https?://)?(?:www\.)?youtube\.com/watch\?v=([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtu\.be/([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtube\.com/embed/([^&\n?#]+)',
-            r'(?:https?://)?(?:www\.)?youtube\.com/v/([^&\n?#]+)',
-            r'youtube\.com/watch\?.*v=([^&\n?#]+)',
-            r'youtube\.com/watch\?[^&]*v=([^&\n?#]+)',
-        ]
-
-        for pattern in patterns:
-            match = re.search(pattern, video_url, re.IGNORECASE)
-            if match:
-                video_id = match.group(1)
-                # Limpiar el ID del video
-                video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
-                # Validar que el ID tenga 11 caracteres
-                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-                    # Retornar URL de miniatura de máxima calidad, con fallback a hqdefault si maxresdefault no existe
-                    return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
-
-        return None
+        return get_youtube_thumbnail_url(self.video_explicativo_url)
 
     @classmethod
     def get_settings(cls):
@@ -477,7 +418,7 @@ class SiteSettings(BaseModel):
         )
         return settings
 
-class Practice(models.Model):
+class Practice(BaseModel):
     DIFFICULTY_CHOICES = [
         ('easy', _('Fácil')),
         ('medium', _('Medio')),
@@ -488,26 +429,21 @@ class Practice(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='medium')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
 
-class Conversation(models.Model):
+class Conversation(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Conversation {self.id} - {self.user.username}"
 
-class Message(models.Model):
+class Message(BaseModel):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     content = models.TextField()
     is_user = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Mensaje en {self.conversation.title} - {self.created_at}"

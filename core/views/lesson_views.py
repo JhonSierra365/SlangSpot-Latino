@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from ..models import Lesson, Expression
 from ..forms import LessonForm, ExpressionForm
 from .mixins import OwnerRequiredMixin, SuccessMessageMixin, SoftDeleteMixin, SearchMixin
@@ -15,7 +16,7 @@ class LessonListView(LoginRequiredMixin, ListView):
     model = Lesson
     template_name = 'core/lessons_index.html'
     context_object_name = 'lessons'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     paginate_by = 12  # Mostrar 12 lecciones por página
     
     def get_queryset(self):
@@ -76,18 +77,19 @@ class LessonDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Optimizar consulta de expresiones
-        expressions = self.object.expressions.select_related('lesson').filter(is_active=True)
+        # Optimizar consulta de expresiones con prefetch_related para likes
+        expressions = self.object.expressions.select_related('lesson').prefetch_related('likes').filter(is_active=True)
         context['expressions'] = expressions
         return context
 
+@method_decorator(ratelimit(key='user', rate='5/m', method='POST', block=True), name='dispatch')
 class LessonCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Lesson
     form_class = LessonForm
     template_name = 'core/create_lesson.html'
     success_url = reverse_lazy('core:lesson_list')
     success_message = '¡Lección creada exitosamente!'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -98,7 +100,7 @@ class LessonUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessageMix
     form_class = LessonForm
     template_name = 'core/edit_lesson.html'
     success_message = 'Lección actualizada exitosamente.'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def get_success_url(self):
         return reverse_lazy('core:lesson_detail', kwargs={'pk': self.object.id})
@@ -107,14 +109,15 @@ class LessonDeleteView(LoginRequiredMixin, OwnerRequiredMixin, SoftDeleteMixin, 
     model = Lesson
     template_name = 'core/delete_lesson.html'
     success_url = reverse_lazy('core:lesson_list')
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
 
+@method_decorator(ratelimit(key='user', rate='10/m', method='POST', block=True), name='dispatch')
 class ExpressionCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Expression
     form_class = ExpressionForm
     template_name = 'core/create_expression.html'
     success_message = '¡Expresión creada exitosamente!'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -133,7 +136,7 @@ class ExpressionUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessag
     form_class = ExpressionForm
     template_name = 'core/edit_expression.html'
     success_message = 'Expresión actualizada exitosamente.'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -146,7 +149,7 @@ class ExpressionUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessag
 class ExpressionDeleteView(LoginRequiredMixin, OwnerRequiredMixin, SoftDeleteMixin, DeleteView):
     model = Expression
     template_name = 'core/delete_expression.html'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

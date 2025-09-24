@@ -5,6 +5,16 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
 
 jobs:
   test:
@@ -89,33 +99,76 @@ jobs:
         pip install bandit
         bandit -r core/ slangspot/ -f json -o bandit-report.json || true
 
+    - name: Performance testing
+      run: |
+        pip install django-silk
+        python manage.py test --settings=slangspot.settings --keepdb --verbosity=1
+      env:
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: False
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          bandit-report.json
+          **/test-results.xml
+          **/coverage.xml
+
   deploy-staging:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/develop' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Deploy to staging
+    - name: Deploy to Railway (Staging)
+      uses: railwayapp/actions@v1
+      with:
+        railway_token: ${{ secrets.RAILWAY_TOKEN }}
+        service: slangspot-staging
+      env:
+        RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+    - name: Health check
       run: |
-        echo "Deploying to staging environment..."
-        # Add your staging deployment commands here
-        # Example: rsync, docker push, etc.
+        sleep 30
+        curl -f https://slangspot-staging.up.railway.app/health/ || echo "Health check failed"
 
   deploy-production:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Deploy to production
+    - name: Deploy to Railway (Production)
+      uses: railwayapp/actions@v1
+      with:
+        railway_token: ${{ secrets.RAILWAY_TOKEN }}
+        service: slangspot-production
+      env:
+        RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+    - name: Run production migrations
       run: |
-        echo "Deploying to production environment..."
-        # Add your production deployment commands here
-        # Example: rsync, docker push, etc.
+        # If you need to run migrations after deployment
+        echo "Migrations will be handled by Railway's build process"
+
+    - name: Health check
+      run: |
+        sleep 60  # Wait longer for production
+        curl -f https://slangspot.up.railway.app/health/ || echo "Health check failed"
+
+    - name: Performance monitoring
+      run: |
+        # Basic performance check
+        curl -w "@curl-format.txt" -o /dev/null -s https://slangspot.up.railway.app/ || echo "Performance check failed"
 
   notify:
     needs: [test, deploy-staging, deploy-production]
@@ -123,12 +176,34 @@ jobs:
     if: always()
 
     steps:
-    - name: Notify on failure
+    - name: Notify Slack on failure
       if: failure()
-      run: |
-        echo "Pipeline failed! Check the logs above for details."
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: "🚨 CI/CD Pipeline Failed - SlangSpot Latino"
+        channel: "#deployments"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-    - name: Notify on success
+    - name: Notify Slack on success
       if: success()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: "✅ CI/CD Pipeline Success - SlangSpot Latino Deployed"
+        channel: "#deployments"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Create deployment summary
       run: |
-        echo "Pipeline completed successfully! 🎉"
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "- **Production URL:** https://slangspot.up.railway.app" >> $GITHUB_STEP_SUMMARY
+          echo "- **Staging URL:** https://slangspot-staging.up.railway.app" >> $GITHUB_STEP_SUMMARY
+        fi

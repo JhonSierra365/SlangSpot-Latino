@@ -12,6 +12,17 @@ Una plataforma educativa para aprender español latino de forma auténtica y div
 - **Sistema de Reputación**: Gana puntos por participación activa
 - **Autenticación Social**: Inicia sesión con Google
 - **Responsive Design**: Funciona perfectamente en móvil y desktop
+- **Seguridad Avanzada**: Sanitización HTML, rate limiting, validación estricta
+
+## 🔒 Seguridad
+
+SlangSpot Latino implementa múltiples capas de seguridad:
+
+- **Sanitización HTML**: Todos los contenidos generados por usuarios pasan por sanitización con Bleach para prevenir XSS
+- **Rate Limiting**: Control de tasa en formularios (5 lecciones/min, 10 expresiones/min por usuario)
+- **Validación Estricta**: URLs de YouTube validadas, archivos con límites de tamaño y tipos permitidos
+- **Headers de Seguridad**: Configuración avanzada de headers HTTP para protección adicional
+- **Soft Delete**: Eliminación suave de datos para recuperación y auditoría
 
 ## 🛠️ Tecnologías
 
@@ -20,8 +31,13 @@ Una plataforma educativa para aprender español latino de forma auténtica y div
 - **Autenticación**: Django Allauth con OAuth 2.0
 - **Frontend**: HTML5, CSS3, JavaScript
 - **Compresión**: Django Compressor
-- **Cache**: Redis/LocMem
-- **Despliegue**: Docker-ready
+- **Cache**: Redis avanzado / LocMem
+- **Seguridad**: Bleach (sanitización HTML), Django Ratelimit (control de tasa)
+- **Monitoreo**: Django Debug Toolbar (desarrollo), Sentry (producción)
+- **Analytics**: Google Analytics 4
+- **CDN**: CloudFlare Pages (opcional)
+- **CI/CD**: GitHub Actions con deployment automático
+- **Despliegue**: Railway/Render/Docker-ready
 
 ## 📋 Requisitos
 
@@ -114,6 +130,18 @@ CSRF_TRUSTED_ORIGINS=https://tu-dominio.com
 SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_SECURE=True
 CSRF_COOKIE_SECURE=True
+
+# Monitoreo y Analytics
+SENTRY_DSN=https://tu-sentry-dsn@sentry.io/project-id
+SENTRY_ENVIRONMENT=production
+GOOGLE_ANALYTICS_ID=GA-XXXXXXXXXX
+
+# Cache Avanzado (Redis)
+REDIS_URL=redis://localhost:6379/0
+
+# CDN (opcional)
+CDN_ENABLED=true
+CDN_DOMAIN=cdn.tu-dominio.com
 ```
 
 ### Base de Datos PostgreSQL
@@ -270,6 +298,26 @@ sudo apt-get install chromium-chromedriver
 # Asegurarse de que el servidor no esté corriendo
 python manage.py test core.tests.test_integration
 ```
+
+### Monitoreo y Debugging
+
+**Django Debug Toolbar** (solo en desarrollo):
+- Paneles de SQL, templates, cache, señales
+- Análisis de rendimiento de queries
+- Información detallada de requests
+
+Accede a `http://127.0.0.1:8000/__debug__/` durante desarrollo.
+
+**Sentry** (producción):
+- Monitoreo de errores en tiempo real
+- Performance monitoring
+- Release tracking
+- Alertas automáticas
+
+**Google Analytics 4**:
+- Métricas de usuario y comportamiento
+- Seguimiento de conversiones
+- Análisis de rendimiento
 
 ### Calidad de Código
 

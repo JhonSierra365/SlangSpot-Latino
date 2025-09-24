@@ -28,6 +28,24 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
+# Sentry configuration - Solo en producción
+if not DEBUG:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=config('SENTRY_DSN', default=''),
+        integrations=[
+            DjangoIntegration(),
+        ],
+        # Performance Monitoring
+        traces_sample_rate=1.0,
+        # Release Health
+        send_default_pii=True,
+        # Environment
+        environment=config('SENTRY_ENVIRONMENT', default='production'),
+    )
+
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,127.0.0.1:8000,127.0.0.1:8001', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
@@ -49,6 +67,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
 ]
 
+# Debug Toolbar solo en desarrollo y no durante tests
+if DEBUG and 'test' not in sys.argv:
+    INSTALLED_APPS.append('debug_toolbar')
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -63,6 +85,10 @@ MIDDLEWARE = [
     'core.middleware.CacheHeadersMiddleware',
     'core.middleware.PerformanceMiddleware',
 ]
+
+# Debug Toolbar middleware solo en desarrollo y no durante tests
+if DEBUG and 'test' not in sys.argv:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
 ROOT_URLCONF = 'slangspot.urls'
 
@@ -81,6 +107,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.static',
+                'core.context_processors.google_analytics',
             ],
         },
     },
@@ -136,21 +163,6 @@ else:
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 
 
 # Internationalization
@@ -294,20 +306,51 @@ CACHES = {
     }
 }
 
-# Configuración específica para PostgreSQL en producción
-if DATABASE_URL.startswith('postgresql://'):
-    # Usar Redis para caché en producción si está disponible
-    REDIS_URL = config('REDIS_URL', default=None)
-    if REDIS_URL:
-        CACHES = {
-            'default': {
-                'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-                'LOCATION': REDIS_URL,
-                'OPTIONS': {
-                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                }
-            }
+# Configuración avanzada de Redis para caché
+REDIS_URL = config('REDIS_URL', default=None)
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'CONNECTION_POOL_KWARGS': {
+                    'max_connections': 20,
+                    'decode_responses': True,
+                },
+                'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
+            },
+            'KEY_PREFIX': 'slangspot',
+            'TIMEOUT': 300,
+        },
+        'sessions': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'slangspot_sessions',
+            'TIMEOUT': 1209600,  # 2 semanas
+        },
+        'staticfiles': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'slangspot_static',
+            'TIMEOUT': 86400,  # 24 horas
         }
+    }
+
+    # Configuración de sesiones en Redis
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'sessions'
+
+    # Configuración adicional de Redis
+    DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
+    DJANGO_REDIS_LOGGER = 'django_redis'
 
 # Configuración de Channels - Comentado ya que no se usa
 # ASGI_APPLICATION = 'slangspot.asgi.application'
@@ -406,6 +449,19 @@ RATE_LIMIT_WINDOW = 60  # Ventana de tiempo en segundos
 # Configuración de cache de sesiones
 SESSION_CACHE_ALIAS = 'sessions'
 
+# Google Analytics
+GOOGLE_ANALYTICS_ID = config('GOOGLE_ANALYTICS_ID', default='')
+
+# CDN Configuration
+CDN_ENABLED = config('CDN_ENABLED', default=False, cast=bool)
+CDN_DOMAIN = config('CDN_DOMAIN', default='')
+CDN_URL = f'https://{CDN_DOMAIN}' if CDN_DOMAIN else ''
+
+# Configuración de archivos estáticos con CDN
+if CDN_ENABLED and CDN_DOMAIN:
+    STATIC_URL = f'{CDN_URL}/static/'
+    MEDIA_URL = f'{CDN_URL}/media/'
+
 # ================================
 # CONFIGURACIONES PARA TESTING
 # ================================
@@ -440,3 +496,39 @@ if 'test' in sys.argv:
             },
         },
     }
+
+# ================================
+# CONFIGURACIÓN DE DEBUG TOOLBAR
+# ================================
+
+if DEBUG:
+    # Configuración de Django Debug Toolbar
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_COLLAPSED': True,
+        'SHOW_TOOLBAR_CALLBACK': lambda request: True,  # Mostrar siempre en desarrollo
+    }
+
+    # Paneles adicionales para monitoreo de rendimiento
+    DEBUG_TOOLBAR_PANELS = [
+        'debug_toolbar.panels.history.HistoryPanel',
+        'debug_toolbar.panels.versions.VersionsPanel',
+        'debug_toolbar.panels.timer.TimerPanel',
+        'debug_toolbar.panels.settings.SettingsPanel',
+        'debug_toolbar.panels.headers.HeadersPanel',
+        'debug_toolbar.panels.request.RequestPanel',
+        'debug_toolbar.panels.sql.SQLPanel',
+        'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+        'debug_toolbar.panels.templates.TemplatesPanel',
+        'debug_toolbar.panels.cache.CachePanel',
+        'debug_toolbar.panels.signals.SignalsPanel',
+        'debug_toolbar.panels.logging.LoggingPanel',
+        'debug_toolbar.panels.redirects.RedirectsPanel',
+        'debug_toolbar.panels.profiling.ProfilingPanel',
+    ]
+
+    # IPs permitidas para Debug Toolbar
+    INTERNAL_IPS = [
+        '127.0.0.1',
+        'localhost',
+        '0.0.0.0',
+    ]

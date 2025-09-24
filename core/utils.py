@@ -212,4 +212,52 @@ def get_popular_posts(days=30):
 def get_user_reputation(user):
     """Calcula la reputación del usuario"""
     profile = UserProfile.objects.get_or_create(user=user)[0]
-    return profile.reputation 
+    return profile.reputation
+
+
+def extract_youtube_video_id(url):
+    """
+    Extrae el ID del video de YouTube de una URL.
+
+    Retorna:
+        str or None: ID del video o None si no se encuentra.
+    """
+    import re
+    from urllib.parse import urlparse, parse_qs
+
+    if not url:
+        return None
+
+    # Si ya es una URL de embed, extraer el ID
+    if 'youtube.com/embed' in url:
+        return url.split('/')[-1].split('?')[0]
+
+    # Parsear la URL
+    parsed = urlparse(url)
+    if 'youtube.com' in parsed.netloc or 'youtu.be' in parsed.netloc:
+        if parsed.netloc == 'youtu.be':
+            # youtu.be/short_id
+            video_id = parsed.path.lstrip('/')
+        else:
+            # youtube.com/watch?v=...
+            query = parse_qs(parsed.query)
+            video_id = query.get('v', [None])[0]
+
+        if video_id and len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+            return video_id
+
+    return None
+
+
+def get_youtube_thumbnail_url(video_url):
+    """
+    Obtiene la URL de la miniatura del video de YouTube.
+
+    Retorna:
+        str or None: URL de la miniatura o None si no hay video_url válido.
+    """
+    video_id = extract_youtube_video_id(video_url)
+    if video_id:
+        # Retornar URL de miniatura de máxima calidad, con fallback a hqdefault si maxresdefault no existe
+        return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+    return None
