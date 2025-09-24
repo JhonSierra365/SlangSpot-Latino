@@ -11,7 +11,6 @@ from ..models import Lesson, Expression
 from ..forms import LessonForm, ExpressionForm
 from .mixins import OwnerRequiredMixin, SuccessMessageMixin, SoftDeleteMixin, SearchMixin
 
-@method_decorator(cache_page(60 * 15), name='dispatch')  # Cache por 15 minutos
 class LessonListView(LoginRequiredMixin, ListView):
     model = Lesson
     template_name = 'core/lessons_index.html'

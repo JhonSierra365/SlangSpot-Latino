@@ -2,10 +2,9 @@ asgiref==3.8.1
 dj-database-url==2.1.0
 Django==5.2.3
 django-allauth==0.61.1
-django-compressor==4.4
+django-compressor==4.5.1
 django-redis==5.4.0
-Pillow==10.1.0
-psycopg2-binary==2.9.7
+Pillow==11.0.0
 python-decouple==3.8
 selenium==4.15.2
 sqlparse==0.5.3

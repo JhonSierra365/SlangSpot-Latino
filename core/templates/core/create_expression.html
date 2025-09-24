@@ -1,84 +1,94 @@
-{% extends 'base.html' %}
+{% extends 'core/base.html' %}
+{% load static %}
 
-{% block title %}Añadir Nueva Expresión - SlangSpot{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/forms.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h4 mb-0">Añadir Nueva Expresión</h2>
+<div class="create-expression-container">
+    <div class="form-header">
+        <h1>Añadir Nueva Expresión</h1>
+        <p>Completa el formulario para añadir una nueva expresión a la lección "{{ lesson.title }}".</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="expression-form">
+        {% csrf_token %}
+
+        <div class="form-sections">
+            <!-- Información de la Expresión -->
+            <div class="form-section">
+                <h2>Información de la Expresión</h2>
+
+                <div class="form-group">
+                    <label for="{{ form.text.id_for_label }}">{{ form.text.label }}</label>
+                    {{ form.text }}
+                    {% if form.text.errors %}
+                        <div class="error-message">{{ form.text.errors }}</div>
+                    {% endif %}
                 </div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="mb-4">
-                            <label for="id_text" class="form-label fw-bold">Expresión</label>
-                            <input type="text" name="text" id="id_text" class="form-control form-control-lg {% if form.text.errors %}is-invalid{% endif %}" placeholder="Escribe la expresión o frase..." required>
-                            {% if form.text.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.text.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
 
-                        <div class="mb-4">
-                            <label for="id_meaning" class="form-label fw-bold">Significado</label>
-                            <textarea name="meaning" id="id_meaning" class="form-control {% if form.meaning.errors %}is-invalid{% endif %}" rows="3" placeholder="Explica el significado..." required></textarea>
-                            {% if form.meaning.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.meaning.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.meaning.id_for_label }}">{{ form.meaning.label }}</label>
+                    {{ form.meaning }}
+                    {% if form.meaning.errors %}
+                        <div class="error-message">{{ form.meaning.errors }}</div>
+                    {% endif %}
+                    <small class="form-help">Explica el significado de la expresión.</small>
+                </div>
 
-                        <div class="mb-4">
-                            <label for="id_example" class="form-label fw-bold">Ejemplo</label>
-                            <textarea name="example" id="id_example" class="form-control {% if form.example.errors %}is-invalid{% endif %}" rows="3" placeholder="Ejemplo de uso en contexto..." required></textarea>
-                            {% if form.example.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.example.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.example.id_for_label }}">{{ form.example.label }}</label>
+                    {{ form.example }}
+                    {% if form.example.errors %}
+                        <div class="error-message">{{ form.example.errors }}</div>
+                    {% endif %}
+                    <small class="form-help">Proporciona un ejemplo de uso en contexto.</small>
+                </div>
+            </div>
 
-                        <div class="mb-4">
-                            <label for="id_audio" class="form-label fw-bold">Audio</label>
-                            <input type="file" name="audio" id="id_audio" class="form-control {% if form.audio.errors %}is-invalid{% endif %}" accept="audio/*">
-                            {% if form.audio.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.audio.errors }}
-                            </div>
-                            {% endif %}
-                            <small class="text-muted">Formatos aceptados: MP3, WAV, OGG</small>
-                        </div>
+            <!-- Contenido Adicional -->
+            <div class="form-section">
+                <h2>Contenido Adicional (Opcional)</h2>
 
-                        <div class="mb-4">
-                            <label for="id_notes" class="form-label fw-bold">Notas</label>
-                            <textarea name="notes" id="id_notes" class="form-control {% if form.notes.errors %}is-invalid{% endif %}" rows="3" placeholder="Notas adicionales o contexto cultural..."></textarea>
-                            {% if form.notes.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.notes.errors }}
-                            </div>
-                            {% endif %}
+                <div class="form-group">
+                    <label for="{{ form.audio.id_for_label }}">{{ form.audio.label }}</label>
+                    <div class="file-input-container">
+                        {{ form.audio }}
+                        <div class="file-preview">
+                            <p id="fileName"></p>
                         </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'core:lesson_detail' lesson.id %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Volver a la Lección
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Expresión
-                            </button>
-                        </div>
-                    </form>
+                    </div>
+                    {% if form.audio.errors %}
+                        <div class="error-message">{{ form.audio.errors }}</div>
+                    {% endif %}
+                    <small class="form-help">Formatos aceptados: MP3, WAV, OGG (máximo 10MB)</small>
                 </div>
             </div>
         </div>
-    </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar Expresión</button>
+            <a href="{% url 'core:lesson_detail' lesson.id %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileName = document.getElementById('fileName');
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            fileName.textContent = `Archivo seleccionado: ${file.name}`;
+        } else {
+            fileName.textContent = '';
+        }
+    });
+});
+</script>
 
 <style>
 .card {

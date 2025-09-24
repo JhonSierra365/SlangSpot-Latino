@@ -4,13 +4,14 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from ..forms import CustomUserCreationForm
-from ..models import SiteSettings
+from ..models import SiteSettings, UserProfile
 
 def home(request):
     # Obtener las configuraciones del sitio
     site_settings = SiteSettings.get_settings()
     return render(request, 'core/home.html', {
-        'site_settings': site_settings
+        'site_settings': site_settings,
+        'video_thumbnail_url': site_settings.get_video_thumbnail_url()
     })
 
 def registro(request):
@@ -18,13 +19,15 @@ def registro(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # Crear perfil de usuario automáticamente
+            UserProfile.objects.create(user=user)
             # Specify the authentication backend explicitly
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, '¡Registro exitoso! Bienvenido a SlangSpot.')
             return redirect('home')
     else:
         form = CustomUserCreationForm()
-    return render(request, 'core/test_registro.html', {'form': form})
+    return render(request, 'core/registro.html', {'form': form})
 
 def login_view(request):
     if request.method == 'POST':

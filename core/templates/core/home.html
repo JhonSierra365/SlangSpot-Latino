@@ -138,17 +138,24 @@
                     <p>{{ site_settings.video_explicativo_descripcion|default:"Descubre cómo aprender español latino de forma auténtica y divertida" }}</p>
                 </div>
                 <div class="video-player">
-                    {% if site_settings.video_explicativo_id %}
-                        <iframe 
-                            src="https://www.youtube.com/embed/{{ site_settings.video_explicativo_id }}?rel=0&modestbranding=1" 
+                    {% if video_thumbnail_url %}
+                        <a href="{{ site_settings.video_explicativo_url|default:'#' }}" target="_blank" class="video-thumbnail">
+                            <img src="{{ video_thumbnail_url }}" alt="Video explicativo SlangSpot Latino">
+                            <div class="play-overlay">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </a>
+                    {% elif site_settings.video_explicativo_id %}
+                        <iframe
+                            src="https://www.youtube.com/embed/{{ site_settings.video_explicativo_id }}?rel=0&modestbranding=1"
                             title="Video explicativo SlangSpot Latino"
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen>
                         </iframe>
                     {% else %}
                         <a href="{{ site_settings.video_explicativo_url|default:'#' }}" target="_blank" class="video-thumbnail">
-                            <img src="{% static 'core/images/Miniatura Youtube.png' %}" alt="Video explicativo SlangSpot Latino">
+                            <img src="{% static 'core/images/default-cover.jpg' %}" alt="Video explicativo SlangSpot Latino">
                             <div class="play-overlay">
                                 <i class="fas fa-play"></i>
                             </div>

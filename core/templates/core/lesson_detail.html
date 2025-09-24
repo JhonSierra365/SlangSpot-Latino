@@ -59,24 +59,39 @@
             <section class="lesson-section">
                 <h2>Video de la Lección</h2>
                 {% if lesson.get_video_embed_url %}
-                <div class="video-container">
-                    <iframe
-                        src="{{ lesson.get_video_embed_url }}"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen
-                        loading="lazy">
-                    </iframe>
+                <div class="video-wrapper">
+                    {% if lesson.get_video_thumbnail_url %}
+                    <div class="video-thumbnail" onclick="playVideo(this)">
+                        <img src="{{ lesson.get_video_thumbnail_url }}" alt="Miniatura del video" loading="lazy">
+                        <div class="play-button">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="video-container" {% if lesson.get_video_thumbnail_url %}style="display: none;"{% endif %}>
+                        <iframe
+                            src="{{ lesson.get_video_embed_url }}"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                            loading="lazy">
+                        </iframe>
+                    </div>
                 </div>
                 {% else %}
                 <div class="video-error">
-                    <p>No se pudo cargar el video. URL proporcionada: <code>{{ lesson.video_url }}</code></p>
-                    <p>Formato de URL no reconocido. Intenta con uno de estos formatos:</p>
-                    <ul>
-                        <li>https://www.youtube.com/watch?v=VIDEO_ID</li>
-                        <li>https://youtu.be/VIDEO_ID</li>
-                        <li>https://www.youtube.com/embed/VIDEO_ID</li>
-                    </ul>
+                    <p><strong>Error al cargar el video</strong></p>
+                    <p>La URL proporcionada no se pudo procesar: <code>{{ lesson.video_url }}</code></p>
+                    <div class="error-details">
+                        <p><strong>Formatos de URL soportados:</strong></p>
+                        <ul>
+                            <li><code>https://www.youtube.com/watch?v=VIDEO_ID</code></li>
+                            <li><code>https://youtu.be/VIDEO_ID</code></li>
+                            <li><code>https://www.youtube.com/embed/VIDEO_ID</code></li>
+                        </ul>
+                        <p><strong>Solución:</strong> Verifica que la URL sea correcta y que el video de YouTube sea público.</p>
+                        <p>Si el problema persiste, intenta copiar la URL directamente desde YouTube.</p>
+                    </div>
                 </div>
                 {% endif %}
             </section>
@@ -278,6 +293,51 @@ h1, h2, h3, h4, h5, h6, p, .lesson-meta, .lesson-footer {
     color: #495057;
 }
 
+.video-wrapper {
+    position: relative;
+}
+
+.video-thumbnail {
+    position: relative;
+    cursor: pointer;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.video-thumbnail:hover {
+    transform: scale(1.02);
+}
+
+.video-thumbnail img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 179, 3, 0.9);
+    color: #023047;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.2s;
+}
+
+.play-button:hover {
+    background: #FFB703;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
 .video-container {
     position: relative;
     padding-bottom: 56.25%;
@@ -296,35 +356,49 @@ h1, h2, h3, h4, h5, h6, p, .lesson-meta, .lesson-footer {
 }
 
 .video-error {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
     border-radius: 8px;
     padding: 1.5rem;
     text-align: center;
+    margin: 1rem 0;
 }
 
 .video-error p {
     margin-bottom: 1rem;
-    color: #6c757d;
+    color: #856404;
+}
+
+.video-error .error-details {
+    background: white;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+    text-align: left;
 }
 
 .video-error code {
-    background: #e9ecef;
+    background: #f8f9fa;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-family: monospace;
     color: #495057;
+    word-break: break-all;
 }
 
 .video-error ul {
-    text-align: left;
-    display: inline-block;
-    margin-top: 1rem;
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
 }
 
 .video-error li {
     margin-bottom: 0.5rem;
-    color: #6c757d;
+    color: #495057;
+}
+
+.video-error li code {
+    background: #e9ecef;
+    font-size: 0.9em;
 }
 
 .section-header {
@@ -520,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const audioUrl = this.dataset.audioUrl;
             const icon = this.querySelector('i');
-            
+
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
@@ -528,12 +602,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     i.className = 'fas fa-play';
                 });
             }
-            
+
             if (icon.classList.contains('fa-play')) {
                 currentAudio = new Audio(audioUrl);
                 currentAudio.play();
                 icon.className = 'fas fa-stop';
-                
+
                 currentAudio.onended = function() {
                     icon.className = 'fas fa-play';
                     currentAudio = null;
@@ -542,5 +616,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function playVideo(thumbnailElement) {
+    const videoWrapper = thumbnailElement.parentElement;
+    const videoContainer = videoWrapper.querySelector('.video-container');
+
+    // Hide thumbnail and show video
+    thumbnailElement.style.display = 'none';
+    videoContainer.style.display = 'block';
+}
 </script>
 {% endblock %} 

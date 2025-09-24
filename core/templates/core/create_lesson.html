@@ -86,6 +86,15 @@
                     {% if form.video_url.errors %}
                         <div class="error-message">{{ form.video_url.errors }}</div>
                     {% endif %}
+                    <div id="videoPreview" class="video-preview" style="display: none;">
+                        <p>Vista previa del video:</p>
+                        <div class="video-thumbnail-preview">
+                            <img id="videoThumbnail" src="#" alt="Miniatura del video">
+                            <div class="preview-info">
+                                <small>Esta es la miniatura que aparecerá en la lección</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -116,6 +125,32 @@
     margin-bottom: 1rem;
     border: 2px solid #FFB703;
 }
+
+.video-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.video-thumbnail-preview {
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.video-thumbnail-preview img {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.preview-info {
+    margin-top: 0.5rem;
+    color: #6c757d;
+}
 </style>
 
 <script>
@@ -123,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.querySelector('input[type="file"]');
     const imagePreview = document.getElementById('imagePreview');
     const fileName = document.getElementById('fileName');
+    const videoUrlInput = document.querySelector('input[name="video_url"]');
+    const videoPreview = document.getElementById('videoPreview');
+    const videoThumbnail = document.getElementById('videoThumbnail');
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -142,6 +180,55 @@ document.addEventListener('DOMContentLoaded', function() {
             fileName.textContent = '';
         }
     });
+
+    // Función para extraer ID del video de YouTube
+    function extractYouTubeVideoId(url) {
+        if (!url) return null;
+
+        const patterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+            /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+            /youtube\.com\/watch\?[^&]*v=([^&\n?#]+)/,
+            /youtu\.be\/([^&\n?#]+)/,
+            /youtube\.com\/embed\/([^&\n?#]+)/,
+            /youtube\.com\/v\/([^&\n?#]+)/,
+        ];
+
+        for (const pattern of patterns) {
+            const match = url.match(pattern);
+            if (match) {
+                let videoId = match[1];
+                // Limpiar el ID del video
+                videoId = videoId.split('?')[0].split('&')[0].split('#')[0];
+                return videoId;
+            }
+        }
+
+        return null;
+    }
+
+    // Función para actualizar la vista previa del video
+    function updateVideoPreview() {
+        const url = videoUrlInput.value.trim();
+        const videoId = extractYouTubeVideoId(url);
+
+        if (videoId) {
+            const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            videoThumbnail.src = thumbnailUrl;
+            videoPreview.style.display = 'block';
+        } else {
+            videoPreview.style.display = 'none';
+        }
+    }
+
+    // Event listeners para el input de video
+    videoUrlInput.addEventListener('input', updateVideoPreview);
+    videoUrlInput.addEventListener('blur', updateVideoPreview);
+
+    // Actualizar vista previa si ya hay un valor al cargar la página
+    if (videoUrlInput.value) {
+        updateVideoPreview();
+    }
 });
 </script>
 {% endblock %} 

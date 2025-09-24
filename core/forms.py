@@ -4,13 +4,48 @@ from django.contrib.auth.models import User
 from .models import ForumPost, Comment, Lesson, Expression, Practice, UserProfile
 
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(max_length=30, required=True)
-    last_name = forms.CharField(max_length=30, required=True)
+    email = forms.EmailField(
+        required=True,
+        help_text="Ingresa una dirección de correo electrónico válida. Te enviaremos un enlace de confirmación."
+    )
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        help_text="Tu nombre real para personalizar tu experiencia."
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        help_text="Tu apellido."
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
+        help_texts = {
+            'username': "Elige un nombre de usuario único. Solo letras, números y @/./+/-/_",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Personalizar mensajes de ayuda para contraseñas
+        self.fields['password1'].help_text = (
+            "Tu contraseña debe tener al menos 8 caracteres y no ser demasiado común. "
+            "No debe ser similar a tu información personal."
+        )
+        self.fields['password2'].help_text = "Repite tu contraseña para confirmar."
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Ya existe una cuenta con este correo electrónico.")
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -121,17 +156,22 @@ class ExpressionForm(forms.ModelForm):
     class Meta:
         model = Expression
         fields = ['text', 'meaning', 'example', 'audio']
+        widgets = {
+            'text': forms.TextInput(attrs={'class': 'form-control'}),
+            'meaning': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'example': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'audio': forms.FileInput(attrs={'class': 'form-control'}),
+        }
         labels = {
             'text': 'Expresión',
             'meaning': 'Significado',
             'example': 'Ejemplo de uso',
             'audio': 'Audio (opcional)',
         }
-        widgets = {
-            'text': forms.TextInput(attrs={'placeholder': 'Escribe la expresión o frase...'}),
-            'meaning': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Explica el significado...'}),
-            'example': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Ejemplo de uso en contexto...'}),
-            'audio': forms.FileInput(attrs={'accept': 'audio/*'}),
+        help_texts = {
+            'meaning': 'Explica el significado de la expresión.',
+            'example': 'Proporciona un ejemplo de uso en contexto.',
+            'audio': 'Formatos aceptados: MP3, WAV, OGG (máximo 10MB)',
         }
 
 class PracticeForm(forms.ModelForm):

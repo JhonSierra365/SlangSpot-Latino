@@ -62,7 +62,12 @@ class Expression(BaseModel):
     text = models.CharField(max_length=200)
     meaning = models.TextField(null=True, blank=True)
     example = models.TextField(null=True, blank=True)
-    audio = models.FileField(upload_to='expression_audio/', null=True, blank=True)
+    audio = models.FileField(
+        upload_to='expression_audio/',
+        null=True,
+        blank=True,
+        validators=[validate_file_size, validate_audio_extension]
+    )
 
     def __str__(self):
         """Retorna una representación legible de la expresión."""
@@ -183,12 +188,12 @@ class Lesson(BaseModel):
 
         # Patrones más completos para diferentes formatos de URL de YouTube
         patterns = [
-            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)',
-            r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
-            r'youtube\.com\/watch\?[^&]*v=([^&\n?#]+)',
-            r'youtu\.be\/([^&\n?#]+)',
-            r'youtube\.com\/embed\/([^&\n?#]+)',
-            r'youtube\.com\/v\/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/watch\?v=([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtu\.be/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/embed/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/v/([^&\n?#]+)',
+            r'youtube\.com/watch\?.*v=([^&\n?#]+)',
+            r'youtube\.com/watch\?[^&]*v=([^&\n?#]+)',
         ]
 
         for pattern in patterns:
@@ -197,7 +202,9 @@ class Lesson(BaseModel):
                 video_id = match.group(1)
                 # Limpiar el ID del video (remover parámetros adicionales)
                 video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
-                return f'https://www.youtube.com/embed/{video_id}'
+                # Validar que el ID tenga 11 caracteres (IDs de YouTube estándar)
+                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                    return f'https://www.youtube.com/embed/{video_id}'
 
         # Si no coincide con ningún patrón, intentar extraer ID directamente
         # para casos como URLs malformadas
@@ -206,7 +213,9 @@ class Lesson(BaseModel):
             # Buscar cualquier secuencia de 11 caracteres que podría ser un ID de YouTube
             potential_ids = re.findall(r'[a-zA-Z0-9_-]{11}', self.video_url)
             if potential_ids:
-                return f'https://www.youtube.com/embed/{potential_ids[0]}'
+                video_id = potential_ids[0]
+                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                    return f'https://www.youtube.com/embed/{video_id}'
 
         # Si no se puede convertir, devolver None para no mostrar el iframe
         return None
@@ -225,12 +234,12 @@ class Lesson(BaseModel):
         import re
 
         patterns = [
-            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)',
-            r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
-            r'youtube\.com\/watch\?[^&]*v=([^&\n?#]+)',
-            r'youtu\.be\/([^&\n?#]+)',
-            r'youtube\.com\/embed\/([^&\n?#]+)',
-            r'youtube\.com\/v\/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/watch\?v=([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtu\.be/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/embed/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/v/([^&\n?#]+)',
+            r'youtube\.com/watch\?.*v=([^&\n?#]+)',
+            r'youtube\.com/watch\?[^&]*v=([^&\n?#]+)',
         ]
 
         for pattern in patterns:
@@ -239,8 +248,10 @@ class Lesson(BaseModel):
                 video_id = match.group(1)
                 # Limpiar el ID del video
                 video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
-                # Retornar URL de miniatura de máxima calidad, con fallback
-                return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+                # Validar que el ID tenga 11 caracteres
+                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                    # Retornar URL de miniatura de máxima calidad, con fallback a hqdefault si maxresdefault no existe
+                    return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
 
         return None
     
@@ -406,6 +417,50 @@ class SiteSettings(BaseModel):
 
     def __str__(self):
         return f"Configuración de {self.site_name}"
+
+    def get_video_thumbnail_url(self):
+        """
+        Obtiene la URL de la miniatura del video de YouTube.
+
+        Retorna:
+            str or None: URL de la miniatura o None si no hay video_url o video_id.
+        """
+        import re
+
+        # Primero intentar usar el video_id directo si está disponible
+        if self.video_explicativo_id and len(self.video_explicativo_id.strip()) > 0:
+            video_id = self.video_explicativo_id.strip()
+            if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+
+        # Si no hay video_id, intentar extraer de la URL
+        video_url = self.video_explicativo_url
+        if not video_url:
+            return None
+
+        # Extraer el ID del video usando la misma lógica que get_video_embed_url
+
+        patterns = [
+            r'(?:https?://)?(?:www\.)?youtube\.com/watch\?v=([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtu\.be/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/embed/([^&\n?#]+)',
+            r'(?:https?://)?(?:www\.)?youtube\.com/v/([^&\n?#]+)',
+            r'youtube\.com/watch\?.*v=([^&\n?#]+)',
+            r'youtube\.com/watch\?[^&]*v=([^&\n?#]+)',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, video_url, re.IGNORECASE)
+            if match:
+                video_id = match.group(1)
+                # Limpiar el ID del video
+                video_id = video_id.split('?')[0].split('&')[0].split('#')[0]
+                # Validar que el ID tenga 11 caracteres
+                if len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                    # Retornar URL de miniatura de máxima calidad, con fallback a hqdefault si maxresdefault no existe
+                    return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+
+        return None
 
     @classmethod
     def get_settings(cls):
