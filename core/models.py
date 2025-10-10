@@ -86,13 +86,40 @@ class Expression(BaseModel):
         if not self.meaning and not self.example:
             raise ValidationError("Debe proporcionar al menos un significado o un ejemplo de uso.")
 
+        # Validar longitud del texto de la expresión
+        if self.text and len(self.text.strip()) < 2:
+            raise ValidationError("La expresión debe tener al menos 2 caracteres.")
+
+        # Validar que la expresión no sea solo caracteres especiales
+        import re
+        if self.text and not re.search(r'[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]', self.text):
+            raise ValidationError("La expresión debe contener al menos una letra.")
+
+        # Sanitizar contenido HTML en significado y ejemplo
+        if self.meaning:
+            allowed_tags = ['p', 'br', 'strong', 'em', 'u']
+            allowed_attrs = {}
+            self.meaning = bleach.clean(self.meaning, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+
+        if self.example:
+            allowed_tags = ['p', 'br', 'strong', 'em', 'u']
+            allowed_attrs = {}
+            self.example = bleach.clean(self.example, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+
     class Meta:
         ordering = ['created_at']
 
 def lesson_cover_path(instance, filename):
     # Generar un nombre único para la imagen
     ext = filename.split('.')[-1]
-    filename = f"{instance.id}_{instance.title}_{uuid.uuid4().hex[:8]}.{ext}"
+    # Usar ID si está disponible, sino usar un UUID temporal
+    if instance.id:
+        filename = f"{instance.id}_{instance.title}_{uuid.uuid4().hex[:8]}.{ext}"
+    else:
+        # Para nuevas instancias sin ID, usar timestamp + UUID
+        import time
+        timestamp = str(int(time.time()))
+        filename = f"temp_{timestamp}_{uuid.uuid4().hex[:8]}.{ext}"
     return f'lesson_covers/{filename}'
 
 class Lesson(BaseModel):
@@ -210,27 +237,102 @@ class Lesson(BaseModel):
     def __str__(self):
         return self.title
 
-    def clean(self):
-        if not self.content or self.content.strip() == '':
-            raise ValidationError("El contenido de la lección no puede estar vacío.")
-        if self.content == 'Contenido pendiente':
-            raise ValidationError("Por favor, escribe el contenido de la lección.")
-        # Sanitizar HTML
-        allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a']
-        allowed_attrs = {'a': ['href', 'title']}
-        self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+# Modelos para sistema de subscripciones y pagos
+
+class SubscriptionPlan(BaseModel):
+    """
+    Modelo que representa los diferentes planes de subscripción disponibles.
+    """
+    PLAN_TYPES = [
+        ('monthly', 'Mensual'),
+        ('yearly', 'Anual'),
+    ]
+
+    name = models.CharField(max_length=100, help_text="Nombre del plan (ej: Premium, Pro)")
+    description = models.TextField(help_text="Descripción del plan y sus beneficios")
+    plan_type = models.CharField(max_length=20, choices=PLAN_TYPES, default='monthly')
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Precio en USD")
+    stripe_price_id = models.CharField(max_length=100, blank=True, help_text="ID del precio en Stripe")
+    is_active = models.BooleanField(default=True)
+    features = models.JSONField(default=list, help_text="Lista de características del plan")
+    max_lessons = models.IntegerField(null=True, blank=True, help_text="Máximo de lecciones que puede crear")
+    max_expressions = models.IntegerField(null=True, blank=True, help_text="Máximo de expresiones por lección")
+    has_priority_support = models.BooleanField(default=False)
+    has_audio_download = models.BooleanField(default=False)
+    has_certificates = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name} - {self.plan_type} (${self.price})"
+
+    class Meta:
+        ordering = ['price']
+        verbose_name = 'Plan de Subscripción'
+        verbose_name_plural = 'Planes de Subscripción'
+
+class UserSubscription(BaseModel):
+    """
+    Modelo que representa la subscripción activa de un usuario.
+    """
+    SUBSCRIPTION_STATUS = [
+        ('active', 'Activa'),
+        ('canceled', 'Cancelada'),
+        ('past_due', 'Vencida'),
+        ('incomplete', 'Incompleta'),
+        ('trialing', 'En período de prueba'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    subscription_plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
+    stripe_subscription_id = models.CharField(max_length=100, unique=True, help_text="ID de subscripción en Stripe")
+    status = models.CharField(max_length=20, choices=SUBSCRIPTION_STATUS, default='active')
+    current_period_start = models.DateTimeField(null=True, blank=True)
+    current_period_end = models.DateTimeField(null=True, blank=True)
+    cancel_at_period_end = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.subscription_plan.name}"
+
+    def is_active(self):
+        """Verifica si la subscripción está activa"""
+        return self.status == 'active' and self.current_period_end > timezone.now()
+
+    def days_until_expiry(self):
+        """Retorna los días hasta que expire la subscripción"""
+        if not self.is_active():
+            return 0
+        delta = self.current_period_end - timezone.now()
+        return max(0, delta.days)
+
+    class Meta:
+        verbose_name = 'Subscripción de Usuario'
+        verbose_name_plural = 'Subscripciones de Usuarios'
+
+class Payment(BaseModel):
+    """
+    Modelo que registra los pagos realizados por los usuarios.
+    """
+    PAYMENT_STATUS = [
+        ('pending', 'Pendiente'),
+        ('completed', 'Completado'),
+        ('failed', 'Fallido'),
+        ('refunded', 'Reembolsado'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    subscription = models.ForeignKey('UserSubscription', on_delete=models.CASCADE, null=True, blank=True)
+    stripe_payment_intent_id = models.CharField(max_length=100, help_text="ID del Payment Intent en Stripe")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Monto en USD")
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - ${self.amount} ({self.status})"
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Lección'
-        verbose_name_plural = 'Lecciones'
-        indexes = [
-            models.Index(fields=['title']),
-            models.Index(fields=['level']),
-            models.Index(fields=['category']),
-            models.Index(fields=['country']),
-            models.Index(fields=['created_at']),
-        ]
+        verbose_name = 'Pago'
+        verbose_name_plural = 'Pagos'
 
 class ForumPost(BaseModel):
     CATEGORY_CHOICES = [
@@ -271,6 +373,57 @@ class ForumPost(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def is_premium_content(self):
+        """
+        Determina si una lección es contenido premium basado en criterios.
+        Por defecto, lecciones avanzadas o con video son premium.
+        """
+        return self.level == 'advanced' or bool(self.video_url)
+
+    def can_user_access(self, user):
+        """
+        Determina si un usuario puede acceder a esta lección.
+        """
+        if not user.is_authenticated:
+            return False
+
+        # Los administradores pueden acceder a todo
+        if user.is_staff:
+            return True
+
+        # Si no es contenido premium, todos pueden acceder
+        if not self.is_premium_content():
+            return True
+
+        # Para contenido premium, verificar subscripción
+        try:
+            profile = user.userprofile
+            return profile.has_active_subscription()
+        except:
+            return False
+
+    def clean(self):
+        # Validar contenido básico
+        if not self.content or not self.content.strip():
+            raise ValidationError("El contenido de la lección no puede estar vacío.")
+
+        # Limpiar contenido de espacios y caracteres especiales
+        content_stripped = self.content.strip()
+
+        # Validar longitud mínima razonable (al menos 10 caracteres después de limpiar)
+        if len(content_stripped) < 10:
+            raise ValidationError("El contenido de la lección es demasiado corto. Debe tener al menos 10 caracteres.")
+
+        # Verificar contenido por defecto o placeholder
+        placeholder_texts = ['Contenido pendiente', 'contenido pendiente', 'Contenido por defecto', 'Por favor escribe el contenido']
+        if any(placeholder in content_stripped.lower() for placeholder in placeholder_texts):
+            raise ValidationError("Por favor, escribe el contenido real de la lección.")
+
+        # Sanitizar HTML para seguridad
+        allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a']
+        allowed_attrs = {'a': ['href', 'title']}
+        self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     def can_edit(self, user):
         return user.is_superuser or self.author == user
@@ -325,6 +478,63 @@ class UserProfile(BaseModel):
 
     def __str__(self):
         return f"{self.user.username}'s profile"
+
+    def has_active_subscription(self):
+        """
+        Verifica si el usuario tiene una subscripción activa.
+        """
+        try:
+            active_subscription = self.user.usersubscription.filter(
+                status='active',
+                current_period_end__gt=timezone.now()
+            ).first()
+            return active_subscription is not None
+        except:
+            return False
+
+    def get_subscription_status(self):
+        """
+        Obtiene el estado de la subscripción del usuario.
+        """
+        try:
+            subscription = self.user.usersubscription_set.filter(
+                status__in=['active', 'trialing']
+            ).first()
+            if subscription:
+                return subscription.status
+        except:
+            pass
+        return 'none'
+
+    def can_create_lessons(self):
+        """
+        Verifica si el usuario puede crear lecciones basado en su plan.
+        """
+        if self.user.is_staff:
+            return True
+
+        subscription = self.user.usersubscription_set.filter(
+            status='active',
+            current_period_end__gt=timezone.now()
+        ).first()
+
+        if not subscription:
+            return True  # Los usuarios free pueden crear lecciones básicas
+
+        # Verificar límites del plan
+        if subscription.subscription_plan.max_lessons:
+            current_count = Lesson.objects.filter(user=self.user, is_active=True).count()
+            return current_count < subscription.subscription_plan.max_lessons
+
+        return True
+
+    def can_access_premium_content(self):
+        """
+        Verifica si el usuario puede acceder a contenido premium.
+        """
+        if self.user.is_staff:
+            return True
+        return self.has_active_subscription()
 
 class Tag(BaseModel):
     name = models.CharField(max_length=50, unique=True)

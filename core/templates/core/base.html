@@ -5,6 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SlangSpot Latino{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Aprende español latino auténtico con lecciones, expresiones y frases reales de hablantes nativos.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}español latino, aprender español, expresiones latinas, frases colombianas, español auténtico{% endblock %}">
+    <meta name="author" content="SlangSpot Latino">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="es">
+    <meta name="geo.region" content="CO">
+    <meta name="geo.placename" content="Colombia">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}SlangSpot Latino - Aprende español auténtico{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Aprende español latino con contenido real de hablantes nativos. Lecciones, expresiones y frases auténticas.{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{% endblock %}">
+    <meta property="og:site_name" content="SlangSpot Latino">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="{% block twitter_title %}SlangSpot Latino{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Aprende español latino auténtico{% endblock %}">
+
     <link rel="icon" type="image/png" href="{% static 'core/images/slangspot-logo.png' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -27,24 +47,24 @@
 </head>
 <body>
     <header>
-        <nav>
+        <nav role="navigation" aria-label="Navegación principal">
             <div class="nav-container">
-                <a href="{% url 'core:home' %}" class="logo">
-                    <img src="{% static 'core/images/slangspot-logo.png' %}" alt="SlangSpot Latino Logo" class="logo-image">
+                <a href="{% url 'core:home' %}" class="logo" aria-label="Ir a la página principal de SlangSpot Latino">
+                    <img src="{% static 'core/images/slangspot-logo.png' %}" alt="Logo de SlangSpot Latino" class="logo-image">
                     <span class="logo-text">SlangSpot Latino</span>
                 </a>
-                <div class="nav-links">
-                    <a href="{% url 'core:lesson_list' %}">Lecciones</a>
-                    <a href="{% url 'core:forum_index' %}">Foro</a>
-                    <a href="{% url 'core:blog_list' %}">Blog</a>
+                <div class="nav-links" role="menubar">
+                    <a href="{% url 'core:lesson_list' %}" role="menuitem" aria-label="Ver todas las lecciones disponibles">Lecciones</a>
+                    <a href="{% url 'core:forum_index' %}" role="menuitem" aria-label="Acceder al foro de la comunidad">Foro</a>
+                    <a href="{% url 'core:blog_list' %}" role="menuitem" aria-label="Leer artículos del blog">Blog</a>
                 </div>
-                <div class="auth-buttons">
+                <div class="auth-buttons" role="group" aria-label="Opciones de autenticación">
                     {% if user.is_authenticated %}
-                        <span class="user-greeting">Hola, {{ user.username }}</span>
-                        <a href="{% url 'core:logout' %}" class="auth-btn logout">Salir</a>
+                        <span class="user-greeting" aria-label="Usuario actual">{{ user.first_name|default:user.username }}</span>
+                        <a href="{% url 'core:logout' %}" class="auth-btn logout" aria-label="Cerrar sesión">Salir</a>
                     {% else %}
-                        <a href="{% url 'core:login' %}" class="auth-btn login">Entrar</a>
-                        <a href="{% url 'core:register' %}" class="auth-btn signup">Registrarse</a>
+                        <a href="{% url 'core:login' %}" class="auth-btn login" aria-label="Iniciar sesión">Entrar</a>
+                        <a href="{% url 'core:register' %}" class="auth-btn signup" aria-label="Crear nueva cuenta">Registrarse</a>
                     {% endif %}
                 </div>
             </div>

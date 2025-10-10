@@ -21,7 +21,7 @@ class LessonListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         # Optimizar consulta con select_related para evitar N+1 queries
-        queryset = Lesson.objects.select_related('user').filter(is_active=True)
+        queryset = Lesson.objects.select_related('user').prefetch_related('expressions').filter(is_active=True)
         
         # Búsqueda
         search_query = self.request.GET.get('q')
@@ -72,13 +72,13 @@ class LessonDetailView(DetailView):
     context_object_name = 'lesson'
     
     def get_queryset(self):
-        # Optimizar consulta con select_related para el usuario
-        return Lesson.objects.select_related('user')
+        # Optimizar consulta con select_related para el usuario y prefetch_related para expresiones
+        return Lesson.objects.select_related('user').prefetch_related('expressions')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Optimizar consulta de expresiones con prefetch_related para likes
-        expressions = self.object.expressions.select_related('lesson').prefetch_related('likes').filter(is_active=True)
+        # Optimizar consulta de expresiones
+        expressions = self.object.expressions.select_related('lesson').filter(is_active=True)
         context['expressions'] = expressions
         return context
 
@@ -93,7 +93,16 @@ class LessonCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.user = self.request.user
-        return super().form_valid(form)
+        try:
+            response = super().form_valid(form)
+            # Agregar información adicional al mensaje de éxito
+            messages.success(self.request, f'¡Lección "{form.instance.title}" creada exitosamente!')
+            return response
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error creando lección: {e}")
+            messages.error(self.request, 'Ha ocurrido un error al crear la lección. Por favor, inténtalo de nuevo.')
+            return self.form_invalid(form)
 
 class LessonUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Lesson
@@ -126,7 +135,13 @@ class ExpressionCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.lesson = get_object_or_404(Lesson, id=self.kwargs['lesson_id'])
-        return super().form_valid(form)
+        try:
+            return super().form_valid(form)
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error creando expresión: {e}")
+            messages.error(self.request, 'Ha ocurrido un error al crear la expresión. Por favor, inténtalo de nuevo.')
+            return self.form_invalid(form)
     
     def get_success_url(self):
         return reverse_lazy('core:lesson_detail', kwargs={'pk': self.kwargs['lesson_id']})

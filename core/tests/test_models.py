@@ -1,7 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from core.models import Expression, Lesson, Comment, ForumPost, UserProfile
+from core.models import (
+    Expression, Lesson, Comment, ForumPost, UserProfile,
+    SubscriptionPlan, UserSubscription, Payment, lesson_cover_path
+)
 
 
 class ExpressionModelTest(TestCase):
@@ -270,29 +273,469 @@ class UserProfileModelTest(TestCase):
     
     def test_userprofile_creation(self):
         """Test: Crear un perfil de usuario válido"""
-        profile = UserProfile.objects.create(
-            user=self.user,
-            bio='Test bio',
-            preferred_language='es',
-            learning_goals='Learn Spanish'
-        )
+        # Como ya existe un perfil por la señal automática, lo obtenemos
+        profile = self.user.userprofile
+        # Actualizamos los valores
+        profile.bio = 'Test bio'
+        profile.preferred_language = 'es'
+        profile.learning_goals = 'Learn Spanish'
+        profile.save()
+
         self.assertEqual(profile.user, self.user)
         self.assertEqual(profile.bio, 'Test bio')
         self.assertEqual(profile.preferred_language, 'es')
     
     def test_userprofile_str_representation(self):
         """Test: Representación en string del perfil"""
-        profile = UserProfile.objects.create(
-            user=self.user,
-            bio='Test bio'
-        )
+        # Usar el perfil existente creado por la señal automática
+        profile = self.user.userprofile
+        profile.bio = 'Test bio'
+        profile.save()
         expected = f"{self.user.username}'s profile"
         self.assertEqual(str(profile), expected)
     
     def test_userprofile_default_values(self):
         """Test: Valores por defecto del perfil"""
-        profile = UserProfile.objects.create(user=self.user)
+        # Usar el perfil existente creado por la señal automática
+        profile = self.user.userprofile
         self.assertEqual(profile.preferred_language, 'es')
         self.assertEqual(profile.reputation, 0)
         self.assertEqual(profile.bio, '')
-        self.assertEqual(profile.learning_goals, '') 
+        self.assertEqual(profile.learning_goals, '')
+
+    def test_user_profile_auto_creation(self):
+        """Test: Verificar que el perfil se crea automáticamente con la señal"""
+        # Crear usuario directamente en la base de datos
+        user = User.objects.create_user(
+            username='signal_test_user',
+            email='signal@example.com',
+            password='testpass123'
+        )
+
+        # Verificar que el perfil se creó automáticamente
+        self.assertTrue(hasattr(user, 'userprofile'))
+        profile = user.userprofile
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.user, user)
+        self.assertEqual(profile.preferred_language, 'es')
+
+    def test_lesson_video_url_validation(self):
+        """Test: Validar URLs de YouTube en lecciones"""
+        user = User.objects.create_user(
+            username='lesson_test_user',
+            email='lesson@example.com',
+            password='testpass123'
+        )
+
+        # URL válida de YouTube
+        valid_lesson = Lesson(
+            user=user,
+            title='Test Lesson with Video',
+            content='Test content with video',
+            country='CO',
+            video_url='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+        )
+
+        # No debería lanzar error
+        try:
+            valid_lesson.full_clean()
+        except ValidationError:
+            self.fail("Valid YouTube URL should not raise ValidationError")
+
+        # URL inválida
+        invalid_lesson = Lesson(
+            user=user,
+            title='Test Lesson with Invalid Video',
+            content='Test content with invalid video',
+            country='CO',
+            video_url='https://example.com/video'
+        )
+
+        # Debería lanzar error
+        with self.assertRaises(ValidationError):
+            invalid_lesson.full_clean()
+
+    def test_lesson_file_upload_path_without_id(self):
+        """Test: Función de upload de archivos cuando la lección no tiene ID"""
+        user = User.objects.create_user(
+            username='upload_test_user',
+            email='upload@example.com',
+            password='testpass123'
+        )
+
+        # Crear lección sin guardar (sin ID)
+        lesson = Lesson(
+            user=user,
+            title='Test Upload Lesson',
+            content='Test content for upload testing',
+            country='CO'
+        )
+
+        # Probar función de path sin ID
+        test_filename = 'test_image.jpg'
+        path = lesson_cover_path(lesson, test_filename)
+
+        # Debería generar un path válido con timestamp
+        self.assertIn('lesson_covers/', path)
+        self.assertIn('.jpg', path)
+        self.assertTrue(path.startswith('lesson_covers/temp_'))
+
+    def test_lesson_content_validation_edge_cases(self):
+        """Test: Validaciones edge case del contenido de lecciones"""
+        user = User.objects.create_user(
+            username='validation_test_user',
+            email='validation@example.com',
+            password='testpass123'
+        )
+
+        # Contenido muy corto
+        short_lesson = Lesson(
+            user=user,
+            title='Short Lesson',
+            content='Hi',
+            country='CO'
+        )
+
+        with self.assertRaises(ValidationError):
+            short_lesson.full_clean()
+
+        # Contenido con solo espacios
+        spaces_lesson = Lesson(
+            user=user,
+            title='Spaces Lesson',
+            content='   ',
+            country='CO'
+        )
+
+        with self.assertRaises(ValidationError):
+            spaces_lesson.full_clean()
+
+        # Contenido válido mínimo
+        valid_lesson = Lesson(
+            user=user,
+            title='Valid Lesson',
+            content='Este es un contenido válido con más de 10 caracteres para la lección.',
+            country='CO'
+        )
+
+        # No debería lanzar error
+        try:
+            valid_lesson.full_clean()
+        except ValidationError:
+            self.fail("Valid lesson content should not raise ValidationError")
+
+    def test_expression_creation_with_audio(self):
+        """Test: Crear expresión con archivo de audio"""
+        user = User.objects.create_user(
+            username='audio_test_user',
+            email='audio@example.com',
+            password='testpass123'
+        )
+
+        lesson = Lesson.objects.create(
+            user=user,
+            title='Test Lesson for Audio',
+            content='Test content for audio testing',
+            country='CO'
+        )
+
+        # Crear expresión con audio (simulado)
+        expression = Expression.objects.create(
+            lesson=lesson,
+            text='¡Qué chimba!',
+            meaning='¡Qué genial!',
+            example='¡Qué chimba este lugar!'
+        )
+
+        self.assertEqual(expression.text, '¡Qué chimba!')
+        self.assertEqual(expression.meaning, '¡Qué genial!')
+        self.assertEqual(expression.lesson, lesson)
+        self.assertIsNone(expression.audio)  # Sin archivo real en test
+
+    def test_expression_validation_text_requirements(self):
+        """Test: Validar requisitos del texto de expresión"""
+        user = User.objects.create_user(
+            username='validation_test_user',
+            email='validation@example.com',
+            password='testpass123'
+        )
+
+        lesson = Lesson.objects.create(
+            user=user,
+            title='Test Lesson for Validation',
+            content='Test content for validation testing',
+            country='CO'
+        )
+
+        # Texto muy corto
+        short_expression = Expression(
+            lesson=lesson,
+            text='¡',
+            meaning='Significado',
+            example='Ejemplo'
+        )
+
+        with self.assertRaises(ValidationError):
+            short_expression.full_clean()
+
+        # Texto sin letras
+        symbols_expression = Expression(
+            lesson=lesson,
+            text='!!!@@@###',
+            meaning='Significado',
+            example='Ejemplo'
+        )
+
+        with self.assertRaises(ValidationError):
+            symbols_expression.full_clean()
+
+        # Expresión válida
+        valid_expression = Expression(
+            lesson=lesson,
+            text='¡Qué chimba!',
+            meaning='¡Qué genial!',
+            example='¡Qué chimba este lugar!'
+        )
+
+        # No debería lanzar error
+        try:
+            valid_expression.full_clean()
+        except ValidationError:
+            self.fail("Valid expression should not raise ValidationError")
+
+    def test_subscription_plan_creation(self):
+        """Test: Crear planes de subscripción"""
+        plan = SubscriptionPlan.objects.create(
+            name='Test Premium Plan',
+            description='Plan de prueba para testing',
+            plan_type='monthly',
+            price=19.99,
+            features=['Feature 1', 'Feature 2', 'Feature 3'],
+            max_lessons=50,
+            has_priority_support=True,
+            has_audio_download=True
+        )
+
+        self.assertEqual(plan.name, 'Test Premium Plan')
+        self.assertEqual(plan.price, 19.99)
+        self.assertEqual(plan.plan_type, 'monthly')
+        self.assertTrue(plan.has_priority_support)
+        self.assertTrue(plan.has_audio_download)
+        self.assertEqual(plan.max_lessons, 50)
+
+    def test_user_subscription_creation(self):
+        """Test: Crear subscripción de usuario"""
+        user = User.objects.create_user(
+            username='subscription_user',
+            email='subscription@example.com',
+            password='testpass123'
+        )
+
+        plan = SubscriptionPlan.objects.create(
+            name='Test Plan',
+            description='Test plan',
+            plan_type='monthly',
+            price=9.99
+        )
+
+        subscription = UserSubscription.objects.create(
+            user=user,
+            subscription_plan=plan,
+            stripe_subscription_id='sub_test_123',
+            status='active'
+        )
+
+        self.assertEqual(subscription.user, user)
+        self.assertEqual(subscription.subscription_plan, plan)
+        self.assertEqual(subscription.status, 'active')
+        self.assertTrue(subscription.is_active())
+
+    def test_payment_creation(self):
+        """Test: Crear registro de pago"""
+        user = User.objects.create_user(
+            username='payment_user',
+            email='payment@example.com',
+            password='testpass123'
+        )
+
+        plan = SubscriptionPlan.objects.create(
+            name='Test Plan',
+            description='Test plan',
+            plan_type='monthly',
+            price=9.99
+        )
+
+        subscription = UserSubscription.objects.create(
+            user=user,
+            subscription_plan=plan,
+            stripe_subscription_id='sub_test_456',
+            status='active'
+        )
+
+        payment = Payment.objects.create(
+            user=user,
+            subscription=subscription,
+            stripe_payment_intent_id='pi_test_789',
+            amount=9.99,
+            status='completed'
+        )
+
+        self.assertEqual(payment.user, user)
+        self.assertEqual(payment.subscription, subscription)
+        self.assertEqual(payment.amount, 9.99)
+        self.assertEqual(payment.status, 'completed')
+
+    def test_lesson_premium_content_detection(self):
+        """Test: Detección de contenido premium en lecciones"""
+        user = User.objects.create_user(
+            username='premium_test_user',
+            email='premium@example.com',
+            password='testpass123'
+        )
+
+        # Lección básica (no premium)
+        basic_lesson = Lesson.objects.create(
+            user=user,
+            title='Basic Lesson',
+            content='Basic content for testing',
+            country='CO',
+            level='beginner'
+        )
+
+        self.assertFalse(basic_lesson.is_premium_content())
+        self.assertTrue(basic_lesson.can_user_access(user))
+
+        # Lección avanzada (premium)
+        premium_lesson = Lesson.objects.create(
+            user=user,
+            title='Advanced Lesson',
+            content='Advanced content for testing',
+            country='CO',
+            level='advanced'
+        )
+
+        self.assertTrue(premium_lesson.is_premium_content())
+        # Sin subscripción, no puede acceder
+        self.assertFalse(premium_lesson.can_user_access(user))
+
+    def test_user_profile_subscription_methods(self):
+        """Test: Métodos de subscripción en perfil de usuario"""
+        user = User.objects.create_user(
+            username='profile_test_user',
+            email='profile@example.com',
+            password='testpass123'
+        )
+
+        # Crear perfil automáticamente con la señal
+        profile = user.userprofile
+
+        # Sin subscripción
+        self.assertFalse(profile.has_active_subscription())
+        self.assertEqual(profile.get_subscription_status(), 'none')
+        self.assertTrue(profile.can_create_lessons())  # Free users can create basic lessons
+        self.assertFalse(profile.can_access_premium_content())
+
+    def test_forum_post_creation(self):
+        """Test: Crear publicación de foro válida"""
+        user = User.objects.create_user(
+            username='forum_test_user',
+            email='forum@example.com',
+            password='testpass123'
+        )
+
+        post = ForumPost.objects.create(
+            title='Test Forum Post',
+            content='This is a test forum post content for testing purposes.',
+            author=user,
+            category='general'
+        )
+
+        self.assertEqual(post.title, 'Test Forum Post')
+        self.assertEqual(post.author, user)
+        self.assertEqual(post.category, 'general')
+        self.assertEqual(post.views, 0)
+        self.assertFalse(post.is_pinned)
+        self.assertFalse(post.is_closed)
+
+    def test_forum_post_like_functionality(self):
+        """Test: Funcionalidad de likes en publicaciones del foro"""
+        user1 = User.objects.create_user(
+            username='forum_user1',
+            email='forum1@example.com',
+            password='testpass123'
+        )
+
+        user2 = User.objects.create_user(
+            username='forum_user2',
+            email='forum2@example.com',
+            password='testpass123'
+        )
+
+        post = ForumPost.objects.create(
+            title='Test Post for Likes',
+            content='Test content for likes functionality',
+            author=user1,
+            category='general'
+        )
+
+        # Inicialmente sin likes
+        self.assertEqual(post.likes.count(), 0)
+
+        # Agregar like
+        post.likes.add(user2)
+        self.assertEqual(post.likes.count(), 1)
+        self.assertIn(user2, post.likes.all())
+
+        # Remover like
+        post.likes.remove(user2)
+        self.assertEqual(post.likes.count(), 0)
+        self.assertNotIn(user2, post.likes.all())
+
+    def test_comment_creation_and_replies(self):
+        """Test: Crear comentarios y sistema de respuestas"""
+        user1 = User.objects.create_user(
+            username='comment_user1',
+            email='comment1@example.com',
+            password='testpass123'
+        )
+
+        user2 = User.objects.create_user(
+            username='comment_user2',
+            email='comment2@example.com',
+            password='testpass123'
+        )
+
+        post = ForumPost.objects.create(
+            title='Test Post for Comments',
+            content='Test content for comments',
+            author=user1,
+            category='general'
+        )
+
+        # Crear comentario principal
+        comment = Comment.objects.create(
+            post=post,
+            author=user2,
+            content='This is a test comment'
+        )
+
+        self.assertEqual(comment.post, post)
+        self.assertEqual(comment.author, user2)
+        self.assertIsNone(comment.parent)
+
+        # Crear respuesta
+        reply = Comment.objects.create(
+            post=post,
+            author=user1,
+            content='This is a reply to the comment',
+            parent=comment
+        )
+
+        self.assertEqual(reply.post, post)
+        self.assertEqual(reply.author, user1)
+        self.assertEqual(reply.parent, comment)
+
+        # Verificar que el comentario principal tiene la respuesta
+        replies = comment.get_replies()
+        self.assertIn(reply, replies)
+        self.assertEqual(replies.count(), 1)

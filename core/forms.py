@@ -37,14 +37,22 @@ class CustomUserCreationForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Ya existe una cuenta con este correo electrónico.")
+        if email:
+            email = email.lower().strip()  # Normalizar email
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("Ya existe una cuenta con este correo electrónico.")
         return email
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        if username:
+            username = username.strip()  # Eliminar espacios
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+            # Validar caracteres permitidos
+            import re
+            if not re.match(r'^[a-zA-Z0-9_@.+-]+$', username):
+                raise forms.ValidationError("El nombre de usuario solo puede contener letras, números y los caracteres @/./+/-/_")
         return username
 
     def save(self, commit=True):
@@ -124,6 +132,8 @@ class LessonForm(forms.ModelForm):
         video_url = self.cleaned_data.get('video_url')
         if video_url:
             import re
+            from urllib.parse import urlparse, parse_qs
+
             # Verificar si es una URL de YouTube válida
             youtube_patterns = [
                 r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)',
@@ -132,23 +142,41 @@ class LessonForm(forms.ModelForm):
             ]
 
             is_youtube_url = False
+            video_id = None
+
             for pattern in youtube_patterns:
-                if re.search(pattern, video_url, re.IGNORECASE):
+                match = re.search(pattern, video_url, re.IGNORECASE)
+                if match:
                     is_youtube_url = True
+                    video_id = match.group(1)
                     break
 
             if not is_youtube_url and ('youtube.com' in video_url.lower() or 'youtu.be' in video_url.lower()):
-                # Es una URL de YouTube pero no coincide con los patrones
-                potential_ids = re.findall(r'[a-zA-Z0-9_-]{11}', video_url)
-                if not potential_ids:
-                    raise forms.ValidationError(
-                        'Formato de URL de YouTube no reconocido. Usa uno de estos formatos: '
-                        'https://www.youtube.com/watch?v=VIDEO_ID, '
-                        'https://youtu.be/VIDEO_ID, '
-                        'https://www.youtube.com/embed/VIDEO_ID'
-                    )
-            elif not is_youtube_url:
-                raise forms.ValidationError('Solo se permiten URLs de YouTube.')
+                # Intentar extraer el ID del video usando urllib
+                try:
+                    parsed = urlparse(video_url)
+                    if 'youtu.be' in parsed.netloc:
+                        video_id = parsed.path.lstrip('/')
+                    elif 'youtube.com' in parsed.netloc:
+                        query = parse_qs(parsed.query)
+                        video_id = query.get('v', [None])[0]
+
+                    if video_id and len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                        is_youtube_url = True
+                except:
+                    pass
+
+            if not is_youtube_url:
+                raise forms.ValidationError(
+                    'Por favor ingresa una URL válida de YouTube. Formatos aceptados: '
+                    'https://www.youtube.com/watch?v=VIDEO_ID, '
+                    'https://youtu.be/VIDEO_ID, '
+                    'https://www.youtube.com/embed/VIDEO_ID'
+                )
+
+            # Validar que el video ID tenga el formato correcto
+            if video_id and not re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+                raise forms.ValidationError('El ID del video de YouTube no es válido.')
 
         return video_url
 

@@ -18,13 +18,31 @@ def registro(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            # Crear perfil de usuario automáticamente
-            UserProfile.objects.create(user=user)
-            # Specify the authentication backend explicitly
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            messages.success(request, '¡Registro exitoso! Bienvenido a SlangSpot.')
-            return redirect('home')
+            try:
+                user = form.save()
+                # El perfil se crea automáticamente con la señal post_save
+                # pero verificamos que se haya creado correctamente
+                try:
+                    profile = user.userprofile
+                except UserProfile.DoesNotExist:
+                    # Si no se creó con la señal, crearlo manualmente
+                    UserProfile.objects.create(user=user)
+                    profile = user.userprofile
+
+                # Specify the authentication backend explicitly
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                messages.success(request, '¡Registro exitoso! Bienvenido a SlangSpot.')
+                return redirect('home')
+
+            except Exception as e:
+                # Log del error para debugging
+                print(f"Error durante el registro: {e}")
+                messages.error(request, 'Ha ocurrido un error durante el registro. Por favor, inténtalo de nuevo.')
+        else:
+            # Mostrar errores específicos del formulario
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = CustomUserCreationForm()
     return render(request, 'core/registro.html', {'form': form})

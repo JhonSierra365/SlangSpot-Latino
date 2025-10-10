@@ -287,7 +287,18 @@ footer {
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
 }
 
-/* Responsive */
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .nav-container {
+        max-width: 100%;
+        padding: 0 15px;
+    }
+
+    .nav-links {
+        gap: 25px;
+    }
+}
+
 @media (max-width: 768px) {
     .nav-container {
         flex-direction: column;
@@ -297,13 +308,98 @@ footer {
 
     .nav-links {
         gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .nav-links a {
+        font-size: 0.9rem;
+        padding: 8px 12px;
     }
 
     .auth-buttons {
         gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .auth-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
     }
 
     .logo-text {
         font-size: 1.2rem;
+    }
+
+    .user-greeting {
+        font-size: 0.8rem;
+    }
+
+    /* Footer responsive */
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-container {
+        padding: 0.5rem;
+        gap: 10px;
+    }
+
+    .nav-links {
+        gap: 15px;
+        font-size: 0.8rem;
+    }
+
+    .nav-links a {
+        padding: 6px 10px;
+    }
+
+    .auth-buttons {
+        gap: 8px;
+    }
+
+    .auth-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .logo-text {
+        font-size: 1rem;
+    }
+
+    .logo-image {
+        width: 30px;
+        height: 30px;
+    }
+
+    .user-greeting {
+        font-size: 0.7rem;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Modal responsive */
+    .modal-content {
+        margin: 30% auto;
+        padding: 1.5rem;
+        width: 95%;
+    }
+
+    .modal-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
     }
 }

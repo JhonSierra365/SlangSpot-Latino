@@ -63,7 +63,16 @@ class ForumPostCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        try:
+            response = super().form_valid(form)
+            # Agregar información adicional al mensaje de éxito
+            messages.success(self.request, f'¡Publicación "{form.instance.title}" creada exitosamente!')
+            return response
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error creando publicación: {e}")
+            messages.error(self.request, 'Ha ocurrido un error al crear la publicación. Por favor, inténtalo de nuevo.')
+            return self.form_invalid(form)
 
 class ForumPostUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessageMixin, UpdateView):
     model = ForumPost
@@ -94,28 +103,37 @@ def post_detail_view(request, post_id):
     if request.method == 'POST':
         comment_form = CommentForm(request.POST)
         if comment_form.is_valid():
-            comment = comment_form.save(commit=False)
-            comment.post = post
-            comment.author = request.user
-            comment.save()
-            
-            # Notificar al autor del post sobre el nuevo comentario
-            if hasattr(post, 'author') and post.author != request.user:
-                notify_new_comment(post, comment, request.user)
-            
-            # Procesar menciones
-            content = comment.content
-            for word in content.split():
-                if word.startswith('@'):
-                    username = word[1:]
+            try:
+                comment = comment_form.save(commit=False)
+                comment.post = post
+                comment.author = request.user
+                comment.save()
+
+                # Notificar al autor del post sobre el nuevo comentario
+                if hasattr(post, 'author') and post.author != request.user:
                     try:
-                        mentioned_user = User.objects.get(username=username)
-                        notify_mention(request.user, mentioned_user, post=post, comment=comment)
-                    except User.DoesNotExist:
-                        pass
-            
-            messages.success(request, 'Comentario publicado exitosamente.')
-            return redirect('core:post_detail', post_id=post.id)
+                        notify_new_comment(post, comment, request.user)
+                    except Exception as e:
+                        print(f"Error enviando notificación de comentario: {e}")
+
+                # Procesar menciones
+                content = comment.content
+                for word in content.split():
+                    if word.startswith('@'):
+                        username = word[1:]
+                        try:
+                            mentioned_user = User.objects.get(username=username)
+                            notify_mention(request.user, mentioned_user, post=post, comment=comment)
+                        except User.DoesNotExist:
+                            pass
+                        except Exception as e:
+                            print(f"Error procesando mención @{username}: {e}")
+
+                messages.success(request, 'Comentario publicado exitosamente.')
+                return redirect('core:post_detail', post_id=post.id)
+            except Exception as e:
+                print(f"Error guardando comentario: {e}")
+                messages.error(request, 'Ha ocurrido un error al publicar el comentario. Por favor, inténtalo de nuevo.')
     
     return render(request, 'core/post_detail.html', {
         'post': post,

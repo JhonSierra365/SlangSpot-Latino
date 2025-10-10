@@ -4,6 +4,179 @@
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="{% static 'core/css/forms.css' %}">
+<style>
+/* Estilos profesionales para formulario de lecciones */
+.create-lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #023047, #024059);
+    border-radius: 15px;
+    color: white !important;
+}
+
+.form-header h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+}
+
+.form-header p {
+    opacity: 0.9;
+    margin: 0;
+}
+
+.form-sections {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-section h2 {
+    color: #023047;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #FFB703;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #023047;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #FFB703;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(255, 183, 3, 0.25);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #f5c6cb;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.file-input-container {
+    position: relative;
+}
+
+.file-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: #023047;
+    color: #FFB703;
+}
+
+.btn-primary:hover {
+    background: #012233;
+    color: #FFB703;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #023047;
+    border: 2px solid #023047;
+}
+
+.btn-secondary:hover {
+    background: #023047;
+    color: #FFB703;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .create-lesson-container {
+        padding: 1rem;
+    }
+
+    .form-header {
+        padding: 1.5rem;
+    }
+
+    .form-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -22,19 +195,21 @@
                 <h2>Información Básica</h2>
                 
                 <div class="form-group">
-                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }} *</label>
                     {{ form.title }}
                     {% if form.title.errors %}
                         <div class="error-message">{{ form.title.errors }}</div>
                     {% endif %}
+                    <small class="form-help">El título debe ser claro y descriptivo (máximo 200 caracteres)</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label>
+                    <label for="{{ form.content.id_for_label }}">{{ form.content.label }} *</label>
                     {{ form.content }}
                     {% if form.content.errors %}
                         <div class="error-message">{{ form.content.errors }}</div>
                     {% endif %}
+                    <small class="form-help">Describe detalladamente el contenido de la lección. Usa párrafos claros y ejemplos prácticos. (Mínimo 10 caracteres)</small>
                 </div>
 
                 <div class="form-group">
@@ -71,13 +246,14 @@
                     <div class="file-input-container">
                         {{ form.cover_image }}
                         <div class="file-preview">
-                            <img id="imagePreview" src="#" alt="Vista previa" style="display: none;">
+                            <img id="imagePreview" src="#" alt="Vista previa de la imagen de portada" style="display: none;">
                             <p id="fileName"></p>
                         </div>
                     </div>
                     {% if form.cover_image.errors %}
                         <div class="error-message">{{ form.cover_image.errors }}</div>
                     {% endif %}
+                    <small class="form-help">Formatos aceptados: JPG, PNG, GIF. Tamaño máximo: 10MB. Resolución recomendada: 1200x600px</small>
                 </div>
 
                 <div class="form-group">
@@ -126,6 +302,50 @@
     border: 2px solid #FFB703;
 }
 
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #f5c6cb;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #023047;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #FFB703;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(255, 183, 3, 0.25);
+}
+
 .video-preview {
     margin-top: 1rem;
     padding: 1rem;
@@ -165,6 +385,22 @@ document.addEventListener('DOMContentLoaded', function() {
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
+            // Validar tipo de archivo
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                alert('Por favor selecciona un archivo de imagen válido (JPG, PNG, GIF)');
+                fileInput.value = '';
+                return;
+            }
+
+            // Validar tamaño (10MB máximo)
+            const maxSize = 10 * 1024 * 1024; // 10MB en bytes
+            if (file.size > maxSize) {
+                alert('El archivo es demasiado grande. Tamaño máximo permitido: 10MB');
+                fileInput.value = '';
+                return;
+            }
+
             // Mostrar nombre del archivo
             fileName.textContent = file.name;
 
@@ -174,6 +410,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 imagePreview.src = e.target.result;
                 imagePreview.style.display = 'block';
             }
+            reader.onerror = function() {
+                alert('Error al leer el archivo. Por favor intenta con otra imagen.');
+                fileInput.value = '';
+                imagePreview.style.display = 'none';
+                fileName.textContent = '';
+            };
             reader.readAsDataURL(file);
         } else {
             imagePreview.style.display = 'none';
