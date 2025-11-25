@@ -90,6 +90,11 @@ MIDDLEWARE = [
 if DEBUG and 'test' not in sys.argv:
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
+# WhiteNoise middleware en producción para servir archivos estáticos eficientemente
+# Se inserta justo después de SecurityMiddleware
+if not DEBUG:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
 ROOT_URLCONF = 'slangspot.urls'
 
 TEMPLATES = [
@@ -196,8 +201,8 @@ STATICFILES_FINDERS = [
 
 # Configuración condicional de STATICFILES_STORAGE
 if DEBUG:
-    # En desarrollo, usar cache simple
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
+    # En desarrollo, usar el almacenamiento por defecto (sin manifest ni cache)
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
     # En producción, usar manifest comprimido para versionado y compresión
     STATICFILES_STORAGE = 'compressor.storage.CompressedManifestStaticFilesStorage'
@@ -448,6 +453,14 @@ RATE_LIMIT_WINDOW = 60  # Ventana de tiempo en segundos
 
 # Configuración de cache de sesiones
 SESSION_CACHE_ALIAS = 'sessions'
+
+# Configuración de proveedores sociales para allauth
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
 
 # Google Analytics
 GOOGLE_ANALYTICS_ID = config('GOOGLE_ANALYTICS_ID', default='')

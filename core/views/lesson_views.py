@@ -64,8 +64,8 @@ class LessonListView(LoginRequiredMixin, ListView):
         
         return context
 
-# Vista temporal simple para debug - devuelve texto plano
-@method_decorator(cache_page(60 * 30), name='dispatch')  # Cache por 30 minutos
+# Vista temporal simple para debug - sin cache por decorador.
+# El caché se maneja vía middleware para evitar cachear HTML autenticado.
 class LessonDetailView(DetailView):
     model = Lesson
     template_name = 'core/lesson_detail.html'

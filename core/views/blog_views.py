@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
+from django.views.decorators.http import require_POST
 from ..models import BlogPost
 
 class BlogListView(ListView):
@@ -55,6 +56,7 @@ class BlogCreateView(LoginRequiredMixin, CreateView):
     template_name = 'core/blog/blog_form.html'
     fields = ['title', 'content', 'excerpt', 'category', 'featured_image', 'is_published']
     success_url = reverse_lazy('core:blog_list')
+    login_url = reverse_lazy('core:login')
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -65,6 +67,7 @@ class BlogUpdateView(LoginRequiredMixin, UpdateView):
     model = BlogPost
     template_name = 'core/blog/blog_form.html'
     fields = ['title', 'content', 'excerpt', 'category', 'featured_image', 'is_published']
+    login_url = reverse_lazy('core:login')
 
     def get_queryset(self):
         return BlogPost.objects.filter(author=self.request.user)
@@ -77,6 +80,7 @@ class BlogDeleteView(LoginRequiredMixin, DeleteView):
     model = BlogPost
     template_name = 'core/blog/blog_confirm_delete.html'
     success_url = reverse_lazy('core:blog_list')
+    login_url = reverse_lazy('core:login')
 
     def get_queryset(self):
         return BlogPost.objects.filter(author=self.request.user)
@@ -86,6 +90,7 @@ class BlogDeleteView(LoginRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 @login_required
+@require_POST
 def blog_like(request, slug):
     """Vista para dar like a un post del blog"""
     post = get_object_or_404(BlogPost, slug=slug, is_published=True)

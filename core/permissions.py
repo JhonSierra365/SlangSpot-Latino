@@ -14,16 +14,16 @@ def can_delete_lesson(user, lesson):
     return user.is_superuser or lesson.user == user
 
 def can_edit_expression(user, expression):
-    return user.is_superuser or expression.lesson.author == user
+    return user.is_superuser or expression.lesson.user == user
 
 def can_delete_expression(user, expression):
-    return user.is_superuser or expression.lesson.author == user
+    return user.is_superuser or expression.lesson.user == user
 
 def can_edit_comment(user, comment):
-    return user.is_superuser or comment.user == user
+    return user.is_superuser or comment.author == user
 
 def can_delete_comment(user, comment):
-    return user.is_superuser or comment.user == user
+    return user.is_superuser or comment.author == user
 
 def can_edit_post(user, post):
     return user.is_superuser or post.author == user

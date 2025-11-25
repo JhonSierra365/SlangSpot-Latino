@@ -78,48 +78,59 @@ class Expression(BaseModel):
 
     def clean(self):
         """
-        Valida que se proporcione al menos un significado o ejemplo.
+        Valida la expresión y sanitiza el contenido HTML.
+        """
+        self._validate_content_presence()
+        self._validate_text_length()
+        self._validate_text_has_letters()
+        self._sanitize_html_content()
 
-        Lanza:
-            ValidationError: Si no se proporciona ni significado ni ejemplo.
+    def _validate_content_presence(self):
+        """
+        Valida que se proporcione al menos un significado o ejemplo.
         """
         if not self.meaning and not self.example:
             raise ValidationError("Debe proporcionar al menos un significado o un ejemplo de uso.")
 
-        # Validar longitud del texto de la expresión
+    def _validate_text_length(self):
+        """
+        Valida la longitud mínima del texto de la expresión.
+        """
         if self.text and len(self.text.strip()) < 2:
-            raise ValidationError("La expresión debe tener al menos 2 caracteres.")
+            raise ValidationError("La expresión debe tener al menos 2 caracteres. Ejemplo: '¡Hola!'")
 
-        # Validar que la expresión no sea solo caracteres especiales
-        import re
+    def _validate_text_has_letters(self):
+        """
+        Valida que la expresión contenga al menos una letra.
+        """
         if self.text and not re.search(r'[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]', self.text):
             raise ValidationError("La expresión debe contener al menos una letra.")
 
-        # Sanitizar contenido HTML en significado y ejemplo
+    def _sanitize_html_content(self):
+        """
+        Sanitiza el contenido HTML en significado y ejemplo.
+        """
+        allowed_tags = ['p', 'br', 'strong', 'em', 'u']
+        allowed_attrs = {}
+
         if self.meaning:
-            allowed_tags = ['p', 'br', 'strong', 'em', 'u']
-            allowed_attrs = {}
             self.meaning = bleach.clean(self.meaning, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
         if self.example:
-            allowed_tags = ['p', 'br', 'strong', 'em', 'u']
-            allowed_attrs = {}
             self.example = bleach.clean(self.example, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     class Meta:
         ordering = ['created_at']
 
 def lesson_cover_path(instance, filename):
-    # Generar un nombre único para la imagen
+    """Genera un nombre único y corto para las imágenes de portada de lecciones."""
     ext = filename.split('.')[-1]
-    # Usar ID si está disponible, sino usar un UUID temporal
+    # Usar ID + UUID corto para unicidad, sin incluir el título largo
     if instance.id:
-        filename = f"{instance.id}_{instance.title}_{uuid.uuid4().hex[:8]}.{ext}"
+        filename = f"{instance.id}_{uuid.uuid4().hex[:6]}.{ext}"
     else:
-        # Para nuevas instancias sin ID, usar timestamp + UUID
-        import time
-        timestamp = str(int(time.time()))
-        filename = f"temp_{timestamp}_{uuid.uuid4().hex[:8]}.{ext}"
+        # Para nuevas instancias sin ID, usar solo UUID
+        filename = f"temp_{uuid.uuid4().hex[:8]}.{ext}"
     return f'lesson_covers/{filename}'
 
 class Lesson(BaseModel):
@@ -237,102 +248,6 @@ class Lesson(BaseModel):
     def __str__(self):
         return self.title
 
-# Modelos para sistema de subscripciones y pagos
-
-class SubscriptionPlan(BaseModel):
-    """
-    Modelo que representa los diferentes planes de subscripción disponibles.
-    """
-    PLAN_TYPES = [
-        ('monthly', 'Mensual'),
-        ('yearly', 'Anual'),
-    ]
-
-    name = models.CharField(max_length=100, help_text="Nombre del plan (ej: Premium, Pro)")
-    description = models.TextField(help_text="Descripción del plan y sus beneficios")
-    plan_type = models.CharField(max_length=20, choices=PLAN_TYPES, default='monthly')
-    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Precio en USD")
-    stripe_price_id = models.CharField(max_length=100, blank=True, help_text="ID del precio en Stripe")
-    is_active = models.BooleanField(default=True)
-    features = models.JSONField(default=list, help_text="Lista de características del plan")
-    max_lessons = models.IntegerField(null=True, blank=True, help_text="Máximo de lecciones que puede crear")
-    max_expressions = models.IntegerField(null=True, blank=True, help_text="Máximo de expresiones por lección")
-    has_priority_support = models.BooleanField(default=False)
-    has_audio_download = models.BooleanField(default=False)
-    has_certificates = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.name} - {self.plan_type} (${self.price})"
-
-    class Meta:
-        ordering = ['price']
-        verbose_name = 'Plan de Subscripción'
-        verbose_name_plural = 'Planes de Subscripción'
-
-class UserSubscription(BaseModel):
-    """
-    Modelo que representa la subscripción activa de un usuario.
-    """
-    SUBSCRIPTION_STATUS = [
-        ('active', 'Activa'),
-        ('canceled', 'Cancelada'),
-        ('past_due', 'Vencida'),
-        ('incomplete', 'Incompleta'),
-        ('trialing', 'En período de prueba'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    subscription_plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
-    stripe_subscription_id = models.CharField(max_length=100, unique=True, help_text="ID de subscripción en Stripe")
-    status = models.CharField(max_length=20, choices=SUBSCRIPTION_STATUS, default='active')
-    current_period_start = models.DateTimeField(null=True, blank=True)
-    current_period_end = models.DateTimeField(null=True, blank=True)
-    cancel_at_period_end = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.subscription_plan.name}"
-
-    def is_active(self):
-        """Verifica si la subscripción está activa"""
-        return self.status == 'active' and self.current_period_end > timezone.now()
-
-    def days_until_expiry(self):
-        """Retorna los días hasta que expire la subscripción"""
-        if not self.is_active():
-            return 0
-        delta = self.current_period_end - timezone.now()
-        return max(0, delta.days)
-
-    class Meta:
-        verbose_name = 'Subscripción de Usuario'
-        verbose_name_plural = 'Subscripciones de Usuarios'
-
-class Payment(BaseModel):
-    """
-    Modelo que registra los pagos realizados por los usuarios.
-    """
-    PAYMENT_STATUS = [
-        ('pending', 'Pendiente'),
-        ('completed', 'Completado'),
-        ('failed', 'Fallido'),
-        ('refunded', 'Reembolsado'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    subscription = models.ForeignKey('UserSubscription', on_delete=models.CASCADE, null=True, blank=True)
-    stripe_payment_intent_id = models.CharField(max_length=100, help_text="ID del Payment Intent en Stripe")
-    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Monto en USD")
-    currency = models.CharField(max_length=3, default='USD')
-    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return f"{self.user.username} - ${self.amount} ({self.status})"
-
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Pago'
-        verbose_name_plural = 'Pagos'
 
 class ForumPost(BaseModel):
     CATEGORY_CHOICES = [
@@ -363,67 +278,26 @@ class ForumPost(BaseModel):
         super().save(*args, **kwargs)
 
     def clean(self):
+        # Validación básica de contenido
+        if not self.content or not self.content.strip():
+            raise ValidationError("El contenido no puede estar vacío.")
+        content_stripped = self.content.strip()
+        if len(content_stripped) < 5:
+            raise ValidationError("El contenido es demasiado corto. Debe tener al menos 5 caracteres.")
+
         # Sanitizar HTML en contenido - permitir tags básicos pero no imágenes por seguridad
         allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote']
-        allowed_attrs = {'a': ['href', 'title']}
+        allowed_attrs = {'a': ['href', 'title', 'rel']}
         self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     def get_absolute_url(self):
-        return reverse('core:post_detail', kwargs={'pk': self.pk})
+        return reverse('core:post_detail', kwargs={'post_id': self.pk})
 
     def __str__(self):
         return self.title
 
-    def is_premium_content(self):
-        """
-        Determina si una lección es contenido premium basado en criterios.
-        Por defecto, lecciones avanzadas o con video son premium.
-        """
-        return self.level == 'advanced' or bool(self.video_url)
 
-    def can_user_access(self, user):
-        """
-        Determina si un usuario puede acceder a esta lección.
-        """
-        if not user.is_authenticated:
-            return False
 
-        # Los administradores pueden acceder a todo
-        if user.is_staff:
-            return True
-
-        # Si no es contenido premium, todos pueden acceder
-        if not self.is_premium_content():
-            return True
-
-        # Para contenido premium, verificar subscripción
-        try:
-            profile = user.userprofile
-            return profile.has_active_subscription()
-        except:
-            return False
-
-    def clean(self):
-        # Validar contenido básico
-        if not self.content or not self.content.strip():
-            raise ValidationError("El contenido de la lección no puede estar vacío.")
-
-        # Limpiar contenido de espacios y caracteres especiales
-        content_stripped = self.content.strip()
-
-        # Validar longitud mínima razonable (al menos 10 caracteres después de limpiar)
-        if len(content_stripped) < 10:
-            raise ValidationError("El contenido de la lección es demasiado corto. Debe tener al menos 10 caracteres.")
-
-        # Verificar contenido por defecto o placeholder
-        placeholder_texts = ['Contenido pendiente', 'contenido pendiente', 'Contenido por defecto', 'Por favor escribe el contenido']
-        if any(placeholder in content_stripped.lower() for placeholder in placeholder_texts):
-            raise ValidationError("Por favor, escribe el contenido real de la lección.")
-
-        # Sanitizar HTML para seguridad
-        allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a']
-        allowed_attrs = {'a': ['href', 'title']}
-        self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     def can_edit(self, user):
         return user.is_superuser or self.author == user
@@ -441,6 +315,11 @@ class ForumPost(BaseModel):
         ordering = ['-created_at']
         verbose_name = 'Publicación del Foro'
         verbose_name_plural = 'Publicaciones del Foro'
+        indexes = [
+            models.Index(fields=['category', '-created_at']),
+            models.Index(fields=['author']),
+            models.Index(fields=['is_pinned', '-created_at']),
+        ]
 
 class Comment(BaseModel):
     post = models.ForeignKey(ForumPost, on_delete=models.CASCADE, related_name='comments')
@@ -451,6 +330,10 @@ class Comment(BaseModel):
 
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['post', 'created_at']),
+            models.Index(fields=['author']),
+        ]
 
     def __str__(self):
         if not self.author or not self.post:
@@ -479,62 +362,9 @@ class UserProfile(BaseModel):
     def __str__(self):
         return f"{self.user.username}'s profile"
 
-    def has_active_subscription(self):
-        """
-        Verifica si el usuario tiene una subscripción activa.
-        """
-        try:
-            active_subscription = self.user.usersubscription.filter(
-                status='active',
-                current_period_end__gt=timezone.now()
-            ).first()
-            return active_subscription is not None
-        except:
-            return False
-
-    def get_subscription_status(self):
-        """
-        Obtiene el estado de la subscripción del usuario.
-        """
-        try:
-            subscription = self.user.usersubscription_set.filter(
-                status__in=['active', 'trialing']
-            ).first()
-            if subscription:
-                return subscription.status
-        except:
-            pass
-        return 'none'
-
-    def can_create_lessons(self):
-        """
-        Verifica si el usuario puede crear lecciones basado en su plan.
-        """
-        if self.user.is_staff:
-            return True
-
-        subscription = self.user.usersubscription_set.filter(
-            status='active',
-            current_period_end__gt=timezone.now()
-        ).first()
-
-        if not subscription:
-            return True  # Los usuarios free pueden crear lecciones básicas
-
-        # Verificar límites del plan
-        if subscription.subscription_plan.max_lessons:
-            current_count = Lesson.objects.filter(user=self.user, is_active=True).count()
-            return current_count < subscription.subscription_plan.max_lessons
-
-        return True
-
-    def can_access_premium_content(self):
-        """
-        Verifica si el usuario puede acceder a contenido premium.
-        """
-        if self.user.is_staff:
-            return True
-        return self.has_active_subscription()
+    # Sistema de monetización eliminado - todo es público por ahora
+    # Los métodos de suscripción serán implementados más adelante
+    # cuando se valide el producto
 
 class Tag(BaseModel):
     name = models.CharField(max_length=50, unique=True)
@@ -644,19 +474,65 @@ class Practice(BaseModel):
         return self.title
 
 class Conversation(BaseModel):
+    """
+    Modelo que representa una conversación de chat con IA.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200, blank=True)
+    title = models.CharField(max_length=200, blank=True, help_text="Título de la conversación")
+    last_message_at = models.DateTimeField(null=True, blank=True, help_text="Fecha del último mensaje")
+    message_count = models.PositiveIntegerField(default=0, help_text="Número total de mensajes")
 
     def __str__(self):
-        return f"Conversation {self.id} - {self.user.username}"
+        title = self.title or f"Conversación {self.id}"
+        return f"{title} - {self.user.username}"
+
+    def update_last_message(self):
+        """Actualiza la fecha del último mensaje y el contador"""
+        from django.db.models import Count
+        self.last_message_at = timezone.now()
+        self.message_count = self.messages.filter(is_active=True).count()
+        self.save(update_fields=['last_message_at', 'message_count'])
+
+    class Meta:
+        ordering = ['-last_message_at', '-updated_at']
+        verbose_name = 'Conversación'
+        verbose_name_plural = 'Conversaciones'
+        indexes = [
+            models.Index(fields=['user', '-last_message_at']),
+        ]
 
 class Message(BaseModel):
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    content = models.TextField()
-    is_user = models.BooleanField(default=True)
+    """
+    Modelo que representa un mensaje en una conversación de chat.
+    """
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        help_text="Conversación a la que pertenece el mensaje"
+    )
+    content = models.TextField(help_text="Contenido del mensaje")
+    is_user = models.BooleanField(default=True, help_text="True si es mensaje del usuario, False si es de la IA")
+    read_at = models.DateTimeField(null=True, blank=True, help_text="Fecha en que el usuario leyó el mensaje")
 
     def __str__(self):
-        return f"Mensaje en {self.conversation.title} - {self.created_at}"
+        sender = "Usuario" if self.is_user else "IA"
+        return f"{sender}: {self.content[:50]}... ({self.created_at})"
+
+    def mark_as_read(self):
+        """Marca el mensaje como leído"""
+        if not self.read_at:
+            self.read_at = timezone.now()
+            self.save(update_fields=['read_at'])
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Mensaje'
+        verbose_name_plural = 'Mensajes'
+        indexes = [
+            models.Index(fields=['conversation', 'created_at']),
+            models.Index(fields=['is_user']),
+        ]
 
 class BlogPost(BaseModel):
     CATEGORY_CHOICES = [
@@ -683,6 +559,16 @@ class BlogPost(BaseModel):
     views = models.PositiveIntegerField(default=0)
     likes = models.ManyToManyField(User, related_name='liked_blog_posts', blank=True)
 
+    def clean(self):
+        # Validación y sanitización de contenido del blog
+        if not self.content or not self.content.strip():
+            raise ValidationError("El contenido del artículo no puede estar vacío.")
+        allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote']
+        allowed_attrs = {'a': ['href', 'title', 'rel']}
+        self.content = bleach.clean(self.content, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+        if self.excerpt:
+            self.excerpt = bleach.clean(self.excerpt, tags=['p', 'br', 'strong', 'em', 'u'], attributes={}, strip=True)
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
@@ -703,6 +589,11 @@ class BlogPost(BaseModel):
         ordering = ['-created_at']
         verbose_name = 'Artículo del Blog'
         verbose_name_plural = 'Artículos del Blog'
+        indexes = [
+            models.Index(fields=['is_published', '-created_at']),
+            models.Index(fields=['category', '-created_at']),
+            models.Index(fields=['author']),
+        ]
 
     def __str__(self):
         return self.title

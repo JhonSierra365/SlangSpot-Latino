@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from ..models import ForumPost, Comment
 from ..forms import ForumPostForm, CommentForm
 from .mixins import OwnerRequiredMixin, SuccessMessageMixin, SoftDeleteMixin, SearchMixin
@@ -17,7 +18,7 @@ class ForumPostListView(LoginRequiredMixin, SearchMixin, ListView):
     context_object_name = 'posts'
     search_fields = ['title', 'content']
     paginate_by = 15  # Aumentar paginación para mejor rendimiento
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def get_queryset(self):
         # Optimizar consulta con select_related para el autor y prefetch_related para likes
@@ -38,7 +39,7 @@ class ForumPostDetailView(LoginRequiredMixin, DetailView):
     model = ForumPost
     template_name = 'core/post_detail.html'
     context_object_name = 'post'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def get_queryset(self):
         # Optimizar consulta con select_related para el autor y prefetch_related para likes
@@ -59,7 +60,7 @@ class ForumPostCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     template_name = 'core/create_post.html'
     success_url = reverse_lazy('core:forum_index')
     success_message = '¡Publicación creada exitosamente!'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -79,7 +80,7 @@ class ForumPostUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessage
     form_class = ForumPostForm
     template_name = 'core/edit_post.html'
     success_message = 'Publicación actualizada exitosamente.'
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
     
     def get_success_url(self):
         return reverse_lazy('core:post_detail', kwargs={'post_id': self.object.pk})
@@ -88,7 +89,7 @@ class ForumPostDeleteView(LoginRequiredMixin, OwnerRequiredMixin, SoftDeleteMixi
     model = ForumPost
     template_name = 'core/delete_post.html'
     success_url = reverse_lazy('core:forum_index')
-    login_url = '/core/login/'
+    login_url = reverse_lazy('core:login')
 
 @login_required
 def post_detail_view(request, post_id):
@@ -142,6 +143,7 @@ def post_detail_view(request, post_id):
     })
 
 @login_required
+@require_POST
 def like_post(request, post_id):
     post = get_object_or_404(ForumPost, id=post_id)
     if request.user in post.likes.all():

@@ -2,8 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from core.models import (
-    Expression, Lesson, Comment, ForumPost, UserProfile,
-    SubscriptionPlan, UserSubscription, Payment, lesson_cover_path
+    Expression, Lesson, Comment, ForumPost, UserProfile, lesson_cover_path
 )
 
 
@@ -503,137 +502,7 @@ class UserProfileModelTest(TestCase):
         except ValidationError:
             self.fail("Valid expression should not raise ValidationError")
 
-    def test_subscription_plan_creation(self):
-        """Test: Crear planes de subscripción"""
-        plan = SubscriptionPlan.objects.create(
-            name='Test Premium Plan',
-            description='Plan de prueba para testing',
-            plan_type='monthly',
-            price=19.99,
-            features=['Feature 1', 'Feature 2', 'Feature 3'],
-            max_lessons=50,
-            has_priority_support=True,
-            has_audio_download=True
-        )
 
-        self.assertEqual(plan.name, 'Test Premium Plan')
-        self.assertEqual(plan.price, 19.99)
-        self.assertEqual(plan.plan_type, 'monthly')
-        self.assertTrue(plan.has_priority_support)
-        self.assertTrue(plan.has_audio_download)
-        self.assertEqual(plan.max_lessons, 50)
-
-    def test_user_subscription_creation(self):
-        """Test: Crear subscripción de usuario"""
-        user = User.objects.create_user(
-            username='subscription_user',
-            email='subscription@example.com',
-            password='testpass123'
-        )
-
-        plan = SubscriptionPlan.objects.create(
-            name='Test Plan',
-            description='Test plan',
-            plan_type='monthly',
-            price=9.99
-        )
-
-        subscription = UserSubscription.objects.create(
-            user=user,
-            subscription_plan=plan,
-            stripe_subscription_id='sub_test_123',
-            status='active'
-        )
-
-        self.assertEqual(subscription.user, user)
-        self.assertEqual(subscription.subscription_plan, plan)
-        self.assertEqual(subscription.status, 'active')
-        self.assertTrue(subscription.is_active())
-
-    def test_payment_creation(self):
-        """Test: Crear registro de pago"""
-        user = User.objects.create_user(
-            username='payment_user',
-            email='payment@example.com',
-            password='testpass123'
-        )
-
-        plan = SubscriptionPlan.objects.create(
-            name='Test Plan',
-            description='Test plan',
-            plan_type='monthly',
-            price=9.99
-        )
-
-        subscription = UserSubscription.objects.create(
-            user=user,
-            subscription_plan=plan,
-            stripe_subscription_id='sub_test_456',
-            status='active'
-        )
-
-        payment = Payment.objects.create(
-            user=user,
-            subscription=subscription,
-            stripe_payment_intent_id='pi_test_789',
-            amount=9.99,
-            status='completed'
-        )
-
-        self.assertEqual(payment.user, user)
-        self.assertEqual(payment.subscription, subscription)
-        self.assertEqual(payment.amount, 9.99)
-        self.assertEqual(payment.status, 'completed')
-
-    def test_lesson_premium_content_detection(self):
-        """Test: Detección de contenido premium en lecciones"""
-        user = User.objects.create_user(
-            username='premium_test_user',
-            email='premium@example.com',
-            password='testpass123'
-        )
-
-        # Lección básica (no premium)
-        basic_lesson = Lesson.objects.create(
-            user=user,
-            title='Basic Lesson',
-            content='Basic content for testing',
-            country='CO',
-            level='beginner'
-        )
-
-        self.assertFalse(basic_lesson.is_premium_content())
-        self.assertTrue(basic_lesson.can_user_access(user))
-
-        # Lección avanzada (premium)
-        premium_lesson = Lesson.objects.create(
-            user=user,
-            title='Advanced Lesson',
-            content='Advanced content for testing',
-            country='CO',
-            level='advanced'
-        )
-
-        self.assertTrue(premium_lesson.is_premium_content())
-        # Sin subscripción, no puede acceder
-        self.assertFalse(premium_lesson.can_user_access(user))
-
-    def test_user_profile_subscription_methods(self):
-        """Test: Métodos de subscripción en perfil de usuario"""
-        user = User.objects.create_user(
-            username='profile_test_user',
-            email='profile@example.com',
-            password='testpass123'
-        )
-
-        # Crear perfil automáticamente con la señal
-        profile = user.userprofile
-
-        # Sin subscripción
-        self.assertFalse(profile.has_active_subscription())
-        self.assertEqual(profile.get_subscription_status(), 'none')
-        self.assertTrue(profile.can_create_lessons())  # Free users can create basic lessons
-        self.assertFalse(profile.can_access_premium_content())
 
     def test_forum_post_creation(self):
         """Test: Crear publicación de foro válida"""

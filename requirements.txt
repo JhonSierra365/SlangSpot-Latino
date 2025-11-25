@@ -12,6 +12,7 @@ python-decouple==3.8
 selenium==4.15.2
 sentry-sdk==1.40.0
 sqlparse==0.5.3
+whitenoise==6.7.0
 
 # Development dependencies
 bandit==1.7.6

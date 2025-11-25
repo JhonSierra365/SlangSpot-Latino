@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function likePost(postId, button) {
-    fetch(`/forum/post/${postId}/like/`, {
+    fetch(`/core/forum/post/${postId}/like/`, {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -34,7 +34,8 @@ function likePost(postId, button) {
 }
 
 function likeComment(commentId, button) {
-    fetch(`/forum/comment/${commentId}/like/`, {
+    // Nota: Endpoint aún no implementado en backend.
+    fetch(`/core/forum/comment/${commentId}/like/`, {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',

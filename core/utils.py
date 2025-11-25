@@ -251,13 +251,31 @@ def extract_youtube_video_id(url):
 
 def get_youtube_thumbnail_url(video_url):
     """
-    Obtiene la URL de la miniatura del video de YouTube.
+    Obtiene la URL de la miniatura del video de YouTube con cache.
 
     Retorna:
         str or None: URL de la miniatura o None si no hay video_url válido.
     """
+    from django.core.cache import cache
+
+    if not video_url:
+        return None
+
+    # Usar cache para evitar recalcular la URL frecuentemente
+    cache_key = f'youtube_thumbnail:{video_url}'
+    cached_url = cache.get(cache_key)
+
+    if cached_url is not None:
+        return cached_url
+
+    # Si no está en cache, calcular y cachear
     video_id = extract_youtube_video_id(video_url)
     if video_id:
-        # Retornar URL de miniatura de máxima calidad, con fallback a hqdefault si maxresdefault no existe
-        return f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+        thumbnail_url = f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+        # Cachear por 24 horas
+        cache.set(cache_key, thumbnail_url, 86400)
+        return thumbnail_url
+
+    # Cachear None por 1 hora para URLs inválidas
+    cache.set(cache_key, None, 3600)
     return None

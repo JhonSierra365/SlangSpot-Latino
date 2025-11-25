@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import ForumPost, Comment, Lesson, Expression, Practice, UserProfile
+import re
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -50,7 +51,6 @@ class CustomUserCreationForm(UserCreationForm):
             if User.objects.filter(username=username).exists():
                 raise forms.ValidationError("Este nombre de usuario ya está en uso.")
             # Validar caracteres permitidos
-            import re
             if not re.match(r'^[a-zA-Z0-9_@.+-]+$', username):
                 raise forms.ValidationError("El nombre de usuario solo puede contener letras, números y los caracteres @/./+/-/_")
         return username
@@ -128,56 +128,18 @@ class LessonForm(forms.ModelForm):
         }
 
     def clean_video_url(self):
-        """Valida que la URL del video sea de YouTube y tenga un formato válido."""
+        """Valida que la URL del video sea de YouTube."""
+        from .validators import validate_youtube_url
         video_url = self.cleaned_data.get('video_url')
         if video_url:
-            import re
-            from urllib.parse import urlparse, parse_qs
-
-            # Verificar si es una URL de YouTube válida
-            youtube_patterns = [
-                r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)',
-                r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
-                r'youtu\.be\/([^&\n?#]+)',
-            ]
-
-            is_youtube_url = False
-            video_id = None
-
-            for pattern in youtube_patterns:
-                match = re.search(pattern, video_url, re.IGNORECASE)
-                if match:
-                    is_youtube_url = True
-                    video_id = match.group(1)
-                    break
-
-            if not is_youtube_url and ('youtube.com' in video_url.lower() or 'youtu.be' in video_url.lower()):
-                # Intentar extraer el ID del video usando urllib
-                try:
-                    parsed = urlparse(video_url)
-                    if 'youtu.be' in parsed.netloc:
-                        video_id = parsed.path.lstrip('/')
-                    elif 'youtube.com' in parsed.netloc:
-                        query = parse_qs(parsed.query)
-                        video_id = query.get('v', [None])[0]
-
-                    if video_id and len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-                        is_youtube_url = True
-                except:
-                    pass
-
-            if not is_youtube_url:
+            try:
+                validate_youtube_url(video_url)
+            except forms.ValidationError as e:
                 raise forms.ValidationError(
                     'Por favor ingresa una URL válida de YouTube. Formatos aceptados: '
                     'https://www.youtube.com/watch?v=VIDEO_ID, '
-                    'https://youtu.be/VIDEO_ID, '
-                    'https://www.youtube.com/embed/VIDEO_ID'
+                    'https://youtu.be/VIDEO_ID'
                 )
-
-            # Validar que el video ID tenga el formato correcto
-            if video_id and not re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-                raise forms.ValidationError('El ID del video de YouTube no es válido.')
-
         return video_url
 
 class ExpressionForm(forms.ModelForm):

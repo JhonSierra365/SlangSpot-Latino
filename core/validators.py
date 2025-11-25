@@ -28,7 +28,7 @@ def validate_youtube_url(value):
 
     parsed = urlparse(value)
     if parsed.netloc not in ['www.youtube.com', 'youtube.com', 'youtu.be']:
-        raise ValidationError(_('Solo se permiten URLs de YouTube'))
+        raise ValidationError(_('Solo se permiten URLs de YouTube. Ejemplos: https://www.youtube.com/watch?v=VIDEO_ID o https://youtu.be/VIDEO_ID'))
 
     video_id = None
     if parsed.netloc == 'youtu.be':
@@ -38,4 +38,4 @@ def validate_youtube_url(value):
         video_id = query.get('v', [None])[0]
 
     if not video_id or len(video_id) != 11 or not re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-        raise ValidationError(_('URL de YouTube inválida'))
+        raise ValidationError(_('URL de YouTube inválida. Asegúrate de que la URL sea correcta y contenga un ID de video válido.'))
