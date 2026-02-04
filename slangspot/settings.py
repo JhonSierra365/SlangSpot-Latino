@@ -443,6 +443,11 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': True,
         },
+        'core': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
     },
 }
 

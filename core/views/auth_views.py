@@ -1,10 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from ..forms import CustomUserCreationForm
 from ..models import SiteSettings, UserProfile
+
+import logging
+logger = logging.getLogger(__name__)
 
 def home(request):
     # Obtener las configuraciones del sitio
@@ -21,13 +24,7 @@ def registro(request):
             try:
                 user = form.save()
                 # El perfil se crea automáticamente con la señal post_save
-                # pero verificamos que se haya creado correctamente
-                try:
-                    profile = user.userprofile
-                except UserProfile.DoesNotExist:
-                    # Si no se creó con la señal, crearlo manualmente
-                    UserProfile.objects.create(user=user)
-                    profile = user.userprofile
+                # UserProfile creation handled by signal
 
                 # Specify the authentication backend explicitly
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -36,7 +33,7 @@ def registro(request):
 
             except Exception as e:
                 # Log del error para debugging
-                print(f"Error durante el registro: {e}")
+                logger.error(f"Error durante el registro: {e}")
                 messages.error(request, 'Ha ocurrido un error durante el registro. Por favor, inténtalo de nuevo.')
         else:
             # Mostrar errores específicos del formulario
@@ -77,7 +74,7 @@ def notifications_view(request):
 
 @login_required
 def mark_notification_read(request, notification_id):
-    notification = request.user.notifications.get(id=notification_id)
+    notification = get_object_or_404(request.user.notifications, id=notification_id)
     notification.is_read = True
     notification.save()
     return redirect('notifications')

@@ -22,19 +22,20 @@
                         Frases útiles para el día a día.<br>
                         Aprende con contenido de auténticos latinos.
                     </p>
-                    
+
                     <div class="hero-cta">
                         {% if user.is_authenticated %}
-                            <a href="{% url 'core:lesson_list' %}" class="cta-button primary">Comenzar a aprender</a>
+                        <a href="{% url 'core:lesson_list' %}" class="cta-button primary">Comenzar a aprender</a>
                         {% else %}
-                            <a href="{% url 'core:register' %}" class="cta-button primary">Empezar ya</a>
-                            <a href="{% url 'core:login' %}" class="cta-button secondary">Ya tengo cuenta</a>
+                        <a href="{% url 'core:register' %}" class="cta-button primary">Empezar ya</a>
+                        <a href="{% url 'core:login' %}" class="cta-button secondary">Ya tengo cuenta</a>
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <div class="hero-logo">
-                    <img src="{% static 'core/images/slangspot-logo.png' %}" alt="SlangSpot Latino Logo" class="hero-logo-image">
+                    <img src="{% static 'core/images/slangspot-logo.png' %}" alt="SlangSpot Latino Logo"
+                        class="hero-logo-image">
                 </div>
             </div>
 
@@ -135,31 +136,33 @@
             <div class="video-content">
                 <div class="video-text">
                     <h2>{{ site_settings.video_explicativo_titulo|default:"Conoce SlangSpot Latino" }}</h2>
-                    <p>{{ site_settings.video_explicativo_descripcion|default:"Descubre cómo aprender español latino de forma auténtica y divertida" }}</p>
+                    <p>Descubre cómo aprender español latino de forma auténtica y divertida</p>
                 </div>
                 <div class="video-player">
-                    {% if video_thumbnail_url %}
-                        <a href="{{ site_settings.video_explicativo_url|default:'#' }}" target="_blank" class="video-thumbnail">
-                            <img src="{{ video_thumbnail_url }}" alt="Video explicativo SlangSpot Latino">
-                            <div class="play-overlay">
-                                <i class="fas fa-play"></i>
-                            </div>
-                        </a>
-                    {% elif site_settings.video_explicativo_id %}
-                        <iframe
-                            src="https://www.youtube.com/embed/{{ site_settings.video_explicativo_id }}?rel=0&modestbranding=1"
-                            title="Video explicativo SlangSpot Latino"
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen>
-                        </iframe>
+                    {% if site_settings.video_explicativo_id %}
+                    <iframe
+                        src="https://www.youtube.com/embed/{{ site_settings.video_explicativo_id }}?rel=0&modestbranding=1&playsinline=1&origin=http://127.0.0.1:8000"
+                        title="Video explicativo SlangSpot Latino" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+                    </iframe>
+                    {% elif video_thumbnail_url %}
+                    <a href="{{ site_settings.video_explicativo_url|default:'#' }}" target="_blank"
+                        class="video-thumbnail">
+                        <img src="{{ video_thumbnail_url }}" alt="Video explicativo SlangSpot Latino">
+                        <div class="play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </a>
                     {% else %}
-                        <a href="{{ site_settings.video_explicativo_url|default:'#' }}" target="_blank" class="video-thumbnail">
-                            <img src="{% static 'core/images/default-cover.jpg' %}" alt="Video explicativo SlangSpot Latino">
-                            <div class="play-overlay">
-                                <i class="fas fa-play"></i>
-                            </div>
-                        </a>
+                    <a href="{{ site_settings.video_explicativo_url|default:'#' }}" target="_blank"
+                        class="video-thumbnail">
+                        <img src="{% static 'core/images/default-cover.jpg' %}"
+                            alt="Video explicativo SlangSpot Latino">
+                        <div class="play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </a>
                     {% endif %}
                 </div>
             </div>
@@ -187,7 +190,8 @@
                     </div>
                     <h3>Podcast</h3>
                     <p>SlangSpot Latino - Aprende español mientras haces otras actividades</p>
-                    <a href="https://podcasts.apple.com/co/podcast/slangspot-latino/id1787990919" target="_blank" class="social-link">
+                    <a href="https://podcasts.apple.com/co/podcast/slangspot-latino/id1787990919" target="_blank"
+                        class="social-link">
                         Escuchar
                     </a>
                 </div>
@@ -197,7 +201,8 @@
                     </div>
                     <h3>Clases 1 a 1</h3>
                     <p>Clases personalizadas en italki para practicar conversación</p>
-                    <a href="https://www.italki.com/es/i/reft/AEefACF/FBd6bc/spanish?hl=es&utm_medium=share_teacher&utm_source=copylink_share" target="_blank" class="social-link">
+                    <a href="https://www.italki.com/es/i/reft/AEefACF/FBd6bc/spanish?hl=es&utm_medium=share_teacher&utm_source=copylink_share"
+                        target="_blank" class="social-link">
                         Reservar Clase
                     </a>
                 </div>
@@ -213,7 +218,8 @@
                     <h2>¿Te gusta SlangSpot Latino?</h2>
                     <p>Ayúdame a crear más contenido gratuito para la comunidad</p>
                 </div>
-                <a href="https://paypal.me/jhonsierramusica?country.x=CO&locale.x=es_XC" target="_blank" class="donation-button">
+                <a href="https://paypal.me/jhonsierramusica?country.x=CO&locale.x=es_XC" target="_blank"
+                    class="donation-button">
                     <i class="fab fa-paypal"></i>
                     <span>Apoyar con PayPal</span>
                     <i class="fas fa-heart"></i>
@@ -225,4 +231,4 @@
 
 </div>
 
-{% endblock %} 
+{% endblock %}

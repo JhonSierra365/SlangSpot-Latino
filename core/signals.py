@@ -2,6 +2,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import UserProfile
+import logging
+
+logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -13,7 +16,7 @@ def create_user_profile(sender, instance, created, **kwargs):
             UserProfile.objects.create(user=instance)
         except Exception as e:
             # Log del error pero no interrumpir el proceso de registro
-            print(f"Error creando perfil para usuario {instance.username}: {e}")
+            logger.error(f"Error creando perfil para usuario {instance.username}: {e}")
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
@@ -28,6 +31,6 @@ def save_user_profile(sender, instance, **kwargs):
         try:
             UserProfile.objects.create(user=instance)
         except Exception as e:
-            print(f"Error creando perfil para usuario existente {instance.username}: {e}")
+            logger.error(f"Error creando perfil para usuario existente {instance.username}: {e}")
     except Exception as e:
-        print(f"Error guardando perfil para usuario {instance.username}: {e}")
+        logger.error(f"Error guardando perfil para usuario {instance.username}: {e}")

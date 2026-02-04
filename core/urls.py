@@ -41,8 +41,10 @@ urlpatterns = [
     path('registro/', registro, name='register'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
-    # Notifications routes temporarily disabled (no Notification model yet)
-    
+    # Notifications routes
+    path('notifications/', notifications_view, name='notifications'),
+    path('notifications/<int:notification_id>/mark-read/', mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all-read/', mark_all_notifications_read, name='mark_all_notifications_read'),
     # Forum URLs
     path('forum/', ForumPostListView.as_view(), name='forum_index'),
     path('forum/post/<int:post_id>/', post_detail_view, name='post_detail'),

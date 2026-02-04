@@ -366,6 +366,33 @@ class UserProfile(BaseModel):
     # Los métodos de suscripción serán implementados más adelante
     # cuando se valide el producto
 
+class Notification(BaseModel):
+    TYPE_CHOICES = [
+        ('info', _('Información')),
+        ('success', _('Éxito')),
+        ('warning', _('Advertencia')),
+        ('error', _('Error')),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='info')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    link = models.CharField(max_length=200, blank=True, null=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Notificación'
+        verbose_name_plural = 'Notificaciones'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['is_read']),
+        ]
+
+    def __str__(self):
+        return f"{self.type.upper()}: {self.title} ({self.user.username})"
+
 class Tag(BaseModel):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(unique=True, blank=True)
