@@ -25,7 +25,8 @@
     left: 0;
     right: 0;
     height: 6px;
-    background: #007BFF;
+    background-color: #FFC107;
+    background-color: var(--amarillo-colombia, #FFC107);
 }
 
 .auth-header {
@@ -68,14 +69,15 @@
 }
 
 .form-group input:focus {
-    border-color: #007BFF;
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+    border-color: var(--amarillo-colombia);
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.1);
     outline: none;
 }
 
 .btn-auth {
-    background: #007BFF;
-    color: white;
+    background-color: #FFC107;
+    background-color: var(--amarillo-colombia, #FFC107);
+    color: #212121;
     border: none;
     border-radius: 12px;
     padding: 1.25rem;
@@ -89,14 +91,15 @@
 }
 
 .btn-auth:hover {
-    background: #0056B3;
-    color: white;
+    background-color: #e0a800;
+    background-color: var(--amarillo-colombia-dark, #e0a800);
+    color: #212121;
     transform: translateY(-1px);
 }
 
 .btn-auth:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.2);
 }
 
 .social-divider {
@@ -166,7 +169,7 @@
 }
 
 .auth-footer a {
-    color: #212529;
+    color: var(--amarillo-colombia);
     text-decoration: none;
     font-weight: 600;
     transition: color 0.2s ease;
@@ -174,7 +177,7 @@
 }
 
 .auth-footer a:hover {
-    color: #007BFF;
+    color: #e0a800;
 }
 
 .alert {
@@ -266,7 +269,7 @@
     }
 
     .auth-footer a {
-        color: #ffffff;
+        color: var(--amarillo-colombia);
     }
 
     .form-check-label {

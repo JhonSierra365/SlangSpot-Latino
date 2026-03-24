@@ -1,5 +1,4 @@
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
 def get_user_permissions(user):

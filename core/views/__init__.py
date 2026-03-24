@@ -1,21 +1,22 @@
 from .auth_views import (
-    home, registro, login_view, logout_view,
+    home,
     notifications_view, mark_notification_read,
     mark_all_notifications_read
 )
 
 from .forum_views import (
-    ForumPostListView, ForumPostDetailView,
+    ForumPostListView,
     ForumPostCreateView, ForumPostUpdateView,
     ForumPostDeleteView, post_detail_view,
-    like_post
+    like_post, moderate_delete_post
 )
 
 from .lesson_views import (
     LessonListView, LessonDetailView,
     LessonCreateView, LessonUpdateView,
     LessonDeleteView, ExpressionCreateView,
-    ExpressionUpdateView, ExpressionDeleteView
+    ExpressionUpdateView, ExpressionDeleteView,
+    complete_lesson
 )
 
 from .chat_views import chat, get_chat_history, send_message, get_ai_response

@@ -3,12 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
-from django.views.decorators.cache import cache_page
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
-from ..models import Lesson, Expression
+from django.http import JsonResponse
+from django.utils import timezone
+from ..models import Lesson, Expression, UserLessonProgress
 from ..forms import LessonForm, ExpressionForm
 from .mixins import OwnerRequiredMixin, SuccessMessageMixin, SoftDeleteMixin, SearchMixin
 
@@ -16,7 +16,7 @@ class LessonListView(LoginRequiredMixin, ListView):
     model = Lesson
     template_name = 'core/lessons_index.html'
     context_object_name = 'lessons'
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
     paginate_by = 12  # Mostrar 12 lecciones por página
     
     def get_queryset(self):
@@ -50,6 +50,12 @@ class LessonListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        if self.request.user.is_authenticated:
+            context['completed_lessons'] = UserLessonProgress.objects.filter(
+                user=self.request.user,
+                completed=True
+            ).values_list('lesson_id', flat=True)
+            
         # Agregar datos para filtros
         context['countries'] = Lesson.COUNTRY_CHOICES
         context['difficulties'] = Lesson.LEVEL_CHOICES
@@ -66,30 +72,49 @@ class LessonListView(LoginRequiredMixin, ListView):
 
 # Vista temporal simple para debug - sin cache por decorador.
 # El caché se maneja vía middleware para evitar cachear HTML autenticado.
-class LessonDetailView(DetailView):
+class LessonDetailView(LoginRequiredMixin, DetailView):
     model = Lesson
     template_name = 'core/lesson_detail.html'
     context_object_name = 'lesson'
+    login_url = reverse_lazy('account_login')
     
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if self.request.user.is_authenticated:
+            UserLessonProgress.objects.get_or_create(
+                user=self.request.user,
+                lesson=obj
+            )
+        return obj
+
     def get_queryset(self):
         # Optimizar consulta con select_related para el usuario y prefetch_related para expresiones
         return Lesson.objects.select_related('user').prefetch_related('expressions')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            progress = UserLessonProgress.objects.filter(
+                user=self.request.user,
+                lesson=self.object
+            ).first()
+            context['user_progress'] = progress
         # Optimizar consulta de expresiones
         expressions = self.object.expressions.select_related('lesson').filter(is_active=True)
         context['expressions'] = expressions
         return context
 
 @method_decorator(ratelimit(key='user', rate='5/m', method='POST', block=True), name='dispatch')
-class LessonCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+class LessonCreateView(UserPassesTestMixin, SuccessMessageMixin, CreateView):
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = Lesson
     form_class = LessonForm
     template_name = 'core/create_lesson.html'
     success_url = reverse_lazy('core:lesson_list')
     success_message = '¡Lección creada exitosamente!'
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
     
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -104,21 +129,27 @@ class LessonCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
             messages.error(self.request, 'Ha ocurrido un error al crear la lección. Por favor, inténtalo de nuevo.')
             return self.form_invalid(form)
 
-class LessonUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessageMixin, UpdateView):
+class LessonUpdateView(UserPassesTestMixin, OwnerRequiredMixin, SuccessMessageMixin, UpdateView):
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = Lesson
     form_class = LessonForm
     template_name = 'core/edit_lesson.html'
     success_message = 'Lección actualizada exitosamente.'
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
     
     def get_success_url(self):
         return reverse_lazy('core:lesson_detail', kwargs={'pk': self.object.id})
 
-class LessonDeleteView(LoginRequiredMixin, OwnerRequiredMixin, SoftDeleteMixin, DeleteView):
+class LessonDeleteView(UserPassesTestMixin, OwnerRequiredMixin, SoftDeleteMixin, DeleteView):
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = Lesson
     template_name = 'core/delete_lesson.html'
     success_url = reverse_lazy('core:lesson_list')
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
 
 @method_decorator(ratelimit(key='user', rate='10/m', method='POST', block=True), name='dispatch')
 class ExpressionCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -126,7 +157,7 @@ class ExpressionCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     form_class = ExpressionForm
     template_name = 'core/create_expression.html'
     success_message = '¡Expresión creada exitosamente!'
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -151,7 +182,7 @@ class ExpressionUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessag
     form_class = ExpressionForm
     template_name = 'core/edit_expression.html'
     success_message = 'Expresión actualizada exitosamente.'
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -161,10 +192,24 @@ class ExpressionUpdateView(LoginRequiredMixin, OwnerRequiredMixin, SuccessMessag
     def get_success_url(self):
         return reverse_lazy('core:lesson_detail', kwargs={'pk': self.object.lesson.id})
 
+@login_required
+def complete_lesson(request, pk):
+    if request.method == 'POST':
+        lesson = get_object_or_404(Lesson, pk=pk)
+        progress, created = UserLessonProgress.objects.get_or_create(
+            user=request.user,
+            lesson=lesson
+        )
+        progress.completed = True
+        progress.completed_at = timezone.now()
+        progress.save()
+        return JsonResponse({'status': 'ok', 'completed': True})
+    return JsonResponse({'status': 'error'}, status=400)
+
 class ExpressionDeleteView(LoginRequiredMixin, OwnerRequiredMixin, SoftDeleteMixin, DeleteView):
     model = Expression
     template_name = 'core/delete_expression.html'
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

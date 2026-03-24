@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils import timezone
 from .validators import validate_file_size, validate_image_extension, validate_audio_extension, validate_youtube_url
 import uuid
@@ -624,3 +625,25 @@ class BlogPost(BaseModel):
 
     def __str__(self):
         return self.title
+
+class UserLessonProgress(BaseModel):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='lesson_progress'
+    )
+    lesson = models.ForeignKey(
+        'Lesson',
+        on_delete=models.CASCADE,
+        related_name='user_progress'
+    )
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'lesson')
+        verbose_name = 'Progreso de lección'
+        verbose_name_plural = 'Progresos de lecciones'
+
+    def __str__(self):
+        return f"{self.user} - {self.lesson} - {'Completada' if self.completed else 'En progreso'}"

@@ -61,10 +61,10 @@
                 <div class="auth-buttons" role="group" aria-label="Opciones de autenticación">
                     {% if user.is_authenticated %}
                         <span class="user-greeting" aria-label="Usuario actual">{{ user.first_name|default:user.username }}</span>
-                        <a href="{% url 'core:logout' %}" class="auth-btn logout" aria-label="Cerrar sesión">Salir</a>
+                        <a href="{% url 'account_logout' %}" class="auth-btn logout" aria-label="Cerrar sesión">Salir</a>
                     {% else %}
-                        <a href="{% url 'core:login' %}" class="auth-btn login" aria-label="Iniciar sesión">Entrar</a>
-                        <a href="{% url 'core:register' %}" class="auth-btn signup" aria-label="Crear nueva cuenta">Registrarse</a>
+                        <a href="{% url 'account_login' %}" class="auth-btn login" aria-label="Iniciar sesión">Entrar</a>
+                        <a href="{% url 'account_signup' %}" class="auth-btn signup" aria-label="Crear nueva cuenta">Registrarse</a>
                     {% endif %}
                 </div>
             </div>

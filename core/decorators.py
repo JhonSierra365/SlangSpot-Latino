@@ -40,7 +40,7 @@ def login_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.error(request, 'Debes iniciar sesión para acceder a esta página.')
-            return redirect('core:login')
+            return redirect('account_login')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

@@ -18,6 +18,18 @@
                 </span>
             </div>
             <h1 class="post-title">{{ post.title }}</h1>
+            
+            {% if request.user.is_staff %}
+            <div style="margin-bottom: 15px;">
+                <a href="{% url 'core:moderate_delete_post' post.pk %}"
+                   style="background-color:#dc3545; color:white; 
+                          padding:6px 12px; border-radius:4px; 
+                          font-size:0.85rem; text-decoration:none; display:inline-block;">
+                    🗑️ Eliminar por moderación
+                </a>
+            </div>
+            {% endif %}
+            
             <div class="post-meta">
                 <div class="post-author">
                     <i class="fas fa-user"></i>
@@ -113,7 +125,7 @@
         {% else %}
             <div class="login-to-comment">
                 <i class="fas fa-sign-in-alt"></i>
-                <p>Debes <a href="{% url 'core:login' %}">iniciar sesión</a> para comentar.</p>
+                <p>Debes <a href="{% url 'account_login' %}">iniciar sesión</a> para comentar.</p>
             </div>
         {% endif %}
 

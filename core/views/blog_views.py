@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -51,23 +51,29 @@ class BlogDetailView(DetailView):
         context['related_posts'] = related_posts
         return context
 
-class BlogCreateView(LoginRequiredMixin, CreateView):
+class BlogCreateView(UserPassesTestMixin, CreateView):
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = BlogPost
     template_name = 'core/blog/blog_form.html'
     fields = ['title', 'content', 'excerpt', 'category', 'featured_image', 'is_published']
     success_url = reverse_lazy('core:blog_list')
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         messages.success(self.request, 'Artículo creado exitosamente.')
         return super().form_valid(form)
 
-class BlogUpdateView(LoginRequiredMixin, UpdateView):
+class BlogUpdateView(UserPassesTestMixin, UpdateView):
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = BlogPost
     template_name = 'core/blog/blog_form.html'
     fields = ['title', 'content', 'excerpt', 'category', 'featured_image', 'is_published']
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
 
     def get_queryset(self):
         return BlogPost.objects.filter(author=self.request.user)
@@ -76,11 +82,14 @@ class BlogUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Artículo actualizado exitosamente.')
         return super().form_valid(form)
 
-class BlogDeleteView(LoginRequiredMixin, DeleteView):
+class BlogDeleteView(UserPassesTestMixin, DeleteView):
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = BlogPost
     template_name = 'core/blog/blog_confirm_delete.html'
     success_url = reverse_lazy('core:blog_list')
-    login_url = reverse_lazy('core:login')
+    login_url = reverse_lazy('account_login')
 
     def get_queryset(self):
         return BlogPost.objects.filter(author=self.request.user)

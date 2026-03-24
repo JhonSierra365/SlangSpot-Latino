@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lesson, Expression, Comment, ForumPost, SiteSettings, Practice, UserProfile, BlogPost
+from .models import Lesson, Expression, Comment, ForumPost, SiteSettings, Practice, UserProfile, BlogPost, UserLessonProgress
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
@@ -69,3 +69,7 @@ admin.site.register(Expression, ExpressionAdmin)
 admin.site.register(Comment)
 admin.site.register(ForumPost)
 admin.site.register(SiteSettings, SiteSettingsAdmin)
+
+@admin.register(UserLessonProgress)
+class UserLessonProgressAdmin(admin.ModelAdmin):
+    list_display = ('user', 'lesson', 'completed', 'completed_at')

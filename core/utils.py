@@ -51,7 +51,7 @@ def generate_audio(text, filename):
     # Por ahora retorna False ya que ElevenLabs no está implementado
     return False
 
-def create_notification(user, notification_type, message, related_post=None, related_comment=None, related_user=None):
+def create_notification(user, message):
     """
     Crea una notificación y la envía en tiempo real al usuario
     TODO: Implementar cuando se cree el modelo Notification
@@ -87,10 +87,7 @@ def notify_post_like(post, user):
         message = f"{user.username} dio me gusta a tu publicación '{post.title}'"
         create_notification(
             user=post.author,
-            notification_type='post_like',
-            message=message,
-            related_post=post,
-            related_user=user
+            message=message
         )
 
 def notify_comment_like(comment, user):
@@ -101,10 +98,7 @@ def notify_comment_like(comment, user):
         message = f"{user.username} dio me gusta a tu comentario"
         create_notification(
             user=comment.author,
-            notification_type='comment_like',
-            message=message,
-            related_comment=comment,
-            related_user=user
+            message=message
         )
 
 def notify_new_comment(post, comment, user):
@@ -115,25 +109,7 @@ def notify_new_comment(post, comment, user):
         message = f"{user.username} comentó en tu publicación '{post.title}'"
         create_notification(
             user=post.author,
-            notification_type='new_comment',
-            message=message,
-            related_post=post,
-            related_comment=comment,
-            related_user=user
-        )
-
-def notify_reply(comment, reply, user):
-    """
-    Notifica al autor de un comentario cuando recibe una respuesta
-    """
-    if comment.author != user:  # No notificar si el usuario responde a su propio comentario
-        message = f"{user.username} respondió a tu comentario"
-        create_notification(
-            user=comment.author,
-            notification_type='reply',
-            message=message,
-            related_comment=reply,
-            related_user=user
+            message=message
         )
 
 def notify_mention(user, mentioned_user, post=None, comment=None):
@@ -145,11 +121,7 @@ def notify_mention(user, mentioned_user, post=None, comment=None):
         message = f"{user.username} te mencionó {context}"
         create_notification(
             user=mentioned_user,
-            notification_type='mention',
-            message=message,
-            related_post=post,
-            related_comment=comment,
-            related_user=user
+            message=message
         )
 
 def notify_moderation(user, action, post=None, comment=None):
@@ -159,10 +131,7 @@ def notify_moderation(user, action, post=None, comment=None):
     message = f"Tu {action} ha sido moderado"
     create_notification(
         user=user,
-        notification_type='moderation',
-        message=message,
-        related_post=post,
-        related_comment=comment
+        message=message
     )
 
 def get_recent_activity(user, days=7):

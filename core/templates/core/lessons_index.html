@@ -129,6 +129,9 @@
             </div>
             <div class="lesson-content">
                 <h3>{{ lesson.title }}</h3>
+                {% if lesson.pk in completed_lessons %}
+                    <span class="badge-completada" style="display: inline-block; background-color: #28a745; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-bottom: 10px;"><i class="fas fa-check"></i> Completada</span>
+                {% endif %}
                 <p class="lesson-description">{{ lesson.content|truncatewords:20 }}</p>
                 <div class="lesson-meta">
                     <span class="badge country">

@@ -44,7 +44,7 @@ class AuthViewsTest(TestCase):
     
     def test_registro_view_get(self):
         """Test: Vista de registro con GET"""
-        response = self.client.get(reverse('core:register'))
+        response = self.client.get(reverse('account_signup'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'core/registro.html')
         self.assertIn('form', response.context)
@@ -59,7 +59,7 @@ class AuthViewsTest(TestCase):
             'password1': 'newpass123',
             'password2': 'newpass123'
         }
-        response = self.client.post(reverse('core:register'), form_data)
+        response = self.client.post(reverse('account_signup'), form_data)
         self.assertEqual(response.status_code, 302)  # Redirect after successful registration
         self.assertTrue(User.objects.filter(username='newuser').exists())
     
@@ -71,13 +71,13 @@ class AuthViewsTest(TestCase):
             'password1': 'newpass123',
             'password2': 'differentpass123'
         }
-        response = self.client.post(reverse('core:register'), form_data)
+        response = self.client.post(reverse('account_signup'), form_data)
         self.assertEqual(response.status_code, 200)  # Stay on form page
         self.assertFalse(User.objects.filter(username='newuser').exists())
     
     def test_login_view_get(self):
         """Test: Vista de login con GET"""
-        response = self.client.get(reverse('core:login'))
+        response = self.client.get(reverse('account_login'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'core/login.html')
         self.assertIn('form', response.context)
@@ -88,7 +88,7 @@ class AuthViewsTest(TestCase):
             'username': 'testuser',
             'password': 'testpass123'
         }
-        response = self.client.post(reverse('core:login'), form_data)
+        response = self.client.post(reverse('account_login'), form_data)
         self.assertEqual(response.status_code, 302)  # Redirect after successful login
     
     def test_login_view_post_invalid(self):
@@ -97,13 +97,13 @@ class AuthViewsTest(TestCase):
             'username': 'testuser',
             'password': 'wrongpassword'
         }
-        response = self.client.post(reverse('core:login'), form_data)
+        response = self.client.post(reverse('account_login'), form_data)
         self.assertEqual(response.status_code, 200)  # Stay on form page
     
     def test_logout_view(self):
         """Test: Vista de logout"""
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('core:logout'))
+        response = self.client.get(reverse('account_logout'))
         self.assertEqual(response.status_code, 302)  # Redirect after logout
 
 

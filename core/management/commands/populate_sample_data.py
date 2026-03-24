@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from core.models import (
     Lesson, Expression, ForumPost, Comment, BlogPost,
-    SubscriptionPlan, UserProfile
+    UserProfile
 )
 
 class Command(BaseCommand):
