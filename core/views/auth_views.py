@@ -36,4 +36,13 @@ def mark_notification_read(request, notification_id):
 def mark_all_notifications_read(request):
     request.user.notifications.filter(is_read=False).update(is_read=True)
     messages.success(request, 'Todas las notificaciones han sido marcadas como leídas.')
-    return redirect('notifications') 
+    return redirect('notifications')
+
+def sobre_nosotros(request):
+    return render(request, 'core/static_pages/sobre_nosotros.html')
+
+def politica_privacidad(request):
+    return render(request, 'core/static_pages/politica_privacidad.html')
+
+def terminos_uso(request):
+    return render(request, 'core/static_pages/terminos_uso.html') 

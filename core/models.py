@@ -486,20 +486,7 @@ class SiteSettings(BaseModel):
         )
         return settings
 
-class Practice(BaseModel):
-    DIFFICULTY_CHOICES = [
-        ('easy', _('Fácil')),
-        ('medium', _('Medio')),
-        ('hard', _('Difícil')),
-    ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='medium')
-
-    def __str__(self):
-        return self.title
 
 class Conversation(BaseModel):
     """
@@ -647,3 +634,21 @@ class UserLessonProgress(BaseModel):
 
     def __str__(self):
         return f"{self.user} - {self.lesson} - {'Completada' if self.completed else 'En progreso'}"
+
+class BlogComment(BaseModel):
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_comments')
+    content = models.TextField(max_length=1000)
+    likes = models.ManyToManyField(User, related_name='liked_blog_comments', blank=True)
+    is_approved = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Comentario de blog'
+        verbose_name_plural = 'Comentarios de blog'
+
+    def total_likes(self):
+        return self.likes.count()
+
+    def __str__(self):
+        return f"Comentario de {self.author.username} en {self.post.title}"

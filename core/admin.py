@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lesson, Expression, Comment, ForumPost, SiteSettings, Practice, UserProfile, BlogPost, UserLessonProgress
+from .models import Lesson, Expression, Comment, ForumPost, SiteSettings, UserProfile, BlogPost, UserLessonProgress, BlogComment
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
@@ -7,11 +7,7 @@ class LessonAdmin(admin.ModelAdmin):
     list_filter = ('level', 'category', 'created_at')
     search_fields = ('title', 'content')
 
-@admin.register(Practice)
-class PracticeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'difficulty', 'created_at')
-    list_filter = ('difficulty', 'created_at')
-    search_fields = ('title', 'content')
+
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -73,3 +69,8 @@ admin.site.register(SiteSettings, SiteSettingsAdmin)
 @admin.register(UserLessonProgress)
 class UserLessonProgressAdmin(admin.ModelAdmin):
     list_display = ('user', 'lesson', 'completed', 'completed_at')
+
+@admin.register(BlogComment)
+class BlogCommentAdmin(admin.ModelAdmin):
+    list_display = ('author', 'post', 'is_approved', 'created_at')
+    list_filter = ('is_approved',)

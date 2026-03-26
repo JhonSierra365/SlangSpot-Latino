@@ -4,6 +4,7 @@
 {% block title %}{{ post.title }} - Blog SlangSpot{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
 <style>
     .hero-section {
         background: #FEFAE0 !important;
@@ -652,6 +653,97 @@
     </div>
 </section>
 
+<!-- Comments Section -->
+<section class="blog-comments-section">
+    <div class="blog-comments-container">
+        <h2 class="blog-comments-title">Comentarios</h2>
+
+        <!-- Block 1: Pendientes para staff -->
+        {% if user.is_staff and pending_comments %}
+        <div class="blog-comments-staff-panel">
+            <h3>Moderación Pendiente</h3>
+            {% for comment in pending_comments %}
+            <div class="blog-comments-card">
+                <div class="blog-comments-header">
+                    <div class="blog-comments-author-info">
+                        <div class="blog-comments-avatar">{{ comment.author.username|first|upper }}</div>
+                        <span class="blog-comments-author">{{ comment.author.username }}</span>
+                        <span class="blog-comments-date">{{ comment.created_at|date:"d M Y, H:i" }}</span>
+                    </div>
+                </div>
+                <p class="blog-comments-text">{{ comment.content }}</p>
+                <div class="blog-comments-actions">
+                    <form action="{% url 'core:moderate_blog_comment' comment.pk %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="blog-comments-btn-approve">Aprobar</button>
+                    </form>
+                    <form action="{% url 'core:moderate_blog_comment' comment.pk %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="delete" class="blog-comments-btn-delete">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Block 2: Lista de comentarios aprobados -->
+        <div class="blog-comments-list">
+            {% if comments %}
+                {% for comment in comments %}
+                <div class="blog-comments-card">
+                    <div class="blog-comments-header">
+                        <div class="blog-comments-author-info">
+                            <div class="blog-comments-avatar">{{ comment.author.username|first|upper }}</div>
+                            <span class="blog-comments-author">{{ comment.author.username }}</span>
+                            <span class="blog-comments-date">{{ comment.created_at|date:"d M Y, H:i" }}</span>
+                        </div>
+                    </div>
+                    <p class="blog-comments-text">{{ comment.content }}</p>
+                    <div class="blog-comments-footer">
+                        <button type="button" class="blog-comments-btn-like btn-like-comment" data-pk="{{ comment.pk }}">
+                            <svg fill="{% if user in comment.likes.all %}#ef4444{% else %}none{% endif %}" stroke="{% if user in comment.likes.all %}#ef4444{% else %}currentColor{% endif %}" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            <span class="comment-like-count-{{ comment.pk }}">{{ comment.total_likes }}</span>
+                        </button>
+                        {% if user.is_staff %}
+                        <form action="{% url 'core:moderate_blog_comment' comment.pk %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="delete" class="blog-comments-btn-delete-small">Eliminar</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="blog-comments-empty">
+                    Sé el primero en comentar.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Block 3: Formulario nuevo comentario -->
+        {% if user.is_authenticated %}
+        <div class="blog-comments-form-card">
+            <h3 class="blog-comments-form-title">Deja un comentario</h3>
+            <form action="{% url 'core:add_blog_comment' post.pk %}" method="post">
+                {% csrf_token %}
+                <textarea name="content" maxlength="1000" rows="3" required placeholder="Escribe tu comentario aquí..." class="blog-comments-textarea"></textarea>
+                <div class="blog-comments-form-footer">
+                    <span class="blog-comments-form-note">Nota: Si eres usuario nuevo, tu primer comentario será moderado antes de publicarse.</span>
+                    <button type="submit" class="blog-comments-btn-submit">Publicar</button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="blog-comments-login-prompt">
+            <p>Debes <a href="{% url 'account_login' %}?next={{ request.path }}">iniciar sesión</a> para comentar.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
 <!-- Related Posts Section -->
 {% if related_posts %}
 <section class="related-section">
@@ -825,5 +917,45 @@ function showShareNotification(shareBtn, message, type = 'success') {
     // Habilitar el botón nuevamente
     shareBtn.disabled = false;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const likeButtons = document.querySelectorAll('.btn-like-comment');
+    likeButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pk = this.dataset.pk;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            this.disabled = true;
+            
+            fetch(`/core/blog/comment/${pk}/like/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                const countSpan = document.querySelector(`.comment-like-count-${pk}`);
+                const svg = this.querySelector('svg');
+                
+                if(data.liked) {
+                    svg.setAttribute('fill', '#ef4444');
+                    svg.setAttribute('stroke', '#ef4444');
+                } else {
+                    svg.setAttribute('fill', 'none');
+                    svg.setAttribute('stroke', 'currentColor');
+                }
+                
+                countSpan.textContent = data.likes_count;
+            })
+            .catch(err => console.error(err))
+            .finally(() => {
+                this.disabled = false;
+            });
+        });
+    });
+});
 </script>
 {% endblock %} 

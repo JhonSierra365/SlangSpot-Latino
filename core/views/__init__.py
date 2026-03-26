@@ -1,7 +1,8 @@
 from .auth_views import (
     home,
     notifications_view, mark_notification_read,
-    mark_all_notifications_read
+    mark_all_notifications_read,
+    sobre_nosotros, politica_privacidad, terminos_uso
 )
 
 from .forum_views import (
@@ -21,14 +22,11 @@ from .lesson_views import (
 
 from .chat_views import chat, get_chat_history, send_message, get_ai_response
 from .profile_views import ProfileView, ProfileUpdateView
-from .practice_views import (
-    PracticeListView, PracticeCreateView, PracticeDetailView,
-    PracticeUpdateView, PracticeDeleteView
-)
 
 from .blog_views import (
     BlogListView, BlogDetailView, BlogCreateView,
-    BlogUpdateView, BlogDeleteView, blog_like
+    BlogUpdateView, BlogDeleteView, blog_like,
+    add_blog_comment, like_blog_comment, moderate_blog_comment
 )
 
 __all__ = [
@@ -43,15 +41,17 @@ __all__ = [
     'LessonDeleteView',
     'ProfileView',
     'ProfileUpdateView',
-    'PracticeListView',
-    'PracticeCreateView',
-    'PracticeDetailView',
-    'PracticeUpdateView',
-    'PracticeDeleteView',
+
     'BlogListView',
     'BlogDetailView',
     'BlogCreateView',
     'BlogUpdateView',
     'BlogDeleteView',
     'blog_like',
+    'add_blog_comment',
+    'like_blog_comment',
+    'moderate_blog_comment',
+    'sobre_nosotros',
+    'politica_privacidad',
+    'terminos_uso',
 ] 

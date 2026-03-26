@@ -96,15 +96,14 @@
                         <li><a href="{% url 'core:lesson_list' %}">Lecciones</a></li>
                         <li><a href="{% url 'core:forum_index' %}">Foro</a></li>
                         <li><a href="{% url 'core:blog_list' %}">Blog</a></li>
-                        <li><a href="{% url 'core:practice_list' %}">Práctica</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Recursos</h4>
                     <ul>
-                        <li><a href="#">Sobre Nosotros</a></li>
-                        <li><a href="#">Política de Privacidad</a></li>
-                        <li><a href="#">Términos de Uso</a></li>
+                        <li><a href="{% url 'core:sobre_nosotros' %}">Sobre Nosotros</a></li>
+                        <li><a href="{% url 'core:politica_privacidad' %}">Política de Privacidad</a></li>
+                        <li><a href="{% url 'core:terminos_uso' %}">Términos de Uso</a></li>
                         <li><a href="https://paypal.me/jhonsierramusica" target="_blank">Apoyar</a></li>
                     </ul>
                 </div>

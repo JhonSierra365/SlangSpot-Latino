@@ -4,6 +4,7 @@ from .views import (
     home,
     notifications_view, mark_notification_read,
     mark_all_notifications_read,
+    sobre_nosotros, politica_privacidad, terminos_uso,
     
     # Forum views
     ForumPostListView,
@@ -24,14 +25,11 @@ from .views import (
     # Profile views
     ProfileView, ProfileUpdateView,
     
-    # Practice views
-    PracticeListView, PracticeCreateView,
-    PracticeDetailView, PracticeUpdateView,
-    PracticeDeleteView,
-    
+
     # Blog views
     BlogListView, BlogDetailView, BlogCreateView,
-    BlogUpdateView, BlogDeleteView, blog_like
+    BlogUpdateView, BlogDeleteView, blog_like,
+    add_blog_comment, like_blog_comment, moderate_blog_comment
 )
 
 app_name = 'core'
@@ -39,6 +37,12 @@ app_name = 'core'
 urlpatterns = [
     # Auth URLs
     path('', home, name='home'),
+    
+    # Static Pages
+    path('sobre-nosotros/', sobre_nosotros, name='sobre_nosotros'),
+    path('politica-privacidad/', politica_privacidad, name='politica_privacidad'),
+    path('terminos-uso/', terminos_uso, name='terminos_uso'),
+    
     # Notifications routes
     path('notifications/', notifications_view, name='notifications'),
     path('notifications/<int:notification_id>/mark-read/', mark_notification_read, name='mark_notification_read'),
@@ -73,18 +77,15 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
     path('profile/edit/', ProfileUpdateView.as_view(), name='profile_edit'),
     
-    # Practice URLs
-    path('practice/', PracticeListView.as_view(), name='practice_list'),
-    path('practice/create/', PracticeCreateView.as_view(), name='create_practice'),
-    path('practice/<int:pk>/', PracticeDetailView.as_view(), name='practice_detail'),
-    path('practice/<int:pk>/edit/', PracticeUpdateView.as_view(), name='practice_edit'),
-    path('practice/<int:pk>/delete/', PracticeDeleteView.as_view(), name='practice_delete'),
-    
+
     # Blog URLs
     path('blog/', BlogListView.as_view(), name='blog_list'),
     path('blog/create/', BlogCreateView.as_view(), name='blog_create'),
     path('blog/<int:pk>/edit/', BlogUpdateView.as_view(), name='blog_edit'),
     path('blog/<int:pk>/delete/', BlogDeleteView.as_view(), name='blog_delete'),
     path('blog/<slug:slug>/like/', blog_like, name='blog_like'),
+    path('blog/<int:pk>/comment/', add_blog_comment, name='add_blog_comment'),
+    path('blog/comment/<int:pk>/like/', like_blog_comment, name='like_blog_comment'),
+    path('blog/comment/<int:pk>/moderate/', moderate_blog_comment, name='moderate_blog_comment'),
     path('blog/<slug:slug>/', BlogDetailView.as_view(), name='blog_detail'),
 ] 

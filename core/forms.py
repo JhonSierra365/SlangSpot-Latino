@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import ForumPost, Comment, Lesson, Expression, Practice, UserProfile
+from .models import ForumPost, Comment, Lesson, Expression, UserProfile
 import re
 
 class CustomUserCreationForm(UserCreationForm):
@@ -164,15 +164,6 @@ class ExpressionForm(forms.ModelForm):
             'audio': 'Formatos aceptados: MP3, WAV, OGG (máximo 10MB)',
         }
 
-class PracticeForm(forms.ModelForm):
-    class Meta:
-        model = Practice
-        fields = ['title', 'content', 'difficulty']
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-            'difficulty': forms.Select(attrs={'class': 'form-control'}),
-        }
 
 class UserProfileForm(forms.ModelForm):
     class Meta:

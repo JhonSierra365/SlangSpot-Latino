@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -6,8 +6,9 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
-from ..models import BlogPost
+from ..models import BlogPost, BlogComment
 
 class BlogListView(ListView):
     model = BlogPost
@@ -49,6 +50,12 @@ class BlogDetailView(DetailView):
         ).exclude(id=self.object.id)[:3]
         
         context['related_posts'] = related_posts
+        
+        # Comentarios
+        context['comments'] = self.object.comments.filter(is_approved=True).select_related('author')
+        if self.request.user.is_authenticated and self.request.user.is_staff:
+            context['pending_comments'] = self.object.comments.filter(is_approved=False).select_related('author')
+            
         return context
 
 class BlogCreateView(UserPassesTestMixin, CreateView):
@@ -114,4 +121,62 @@ def blog_like(request, slug):
     return JsonResponse({
         'liked': liked,
         'likes_count': post.likes.count()
-    }) 
+    })
+
+@login_required
+@require_POST
+def add_blog_comment(request, pk):
+    post = get_object_or_404(BlogPost, pk=pk, is_published=True)
+    content = request.POST.get('content', '').strip()
+    
+    if content:
+        is_approved = BlogComment.objects.filter(author=request.user, is_approved=True).exists()
+        BlogComment.objects.create(
+            post=post,
+            author=request.user,
+            content=content[:1000],
+            is_approved=is_approved
+        )
+        if is_approved:
+            messages.success(request, 'Tu comentario ha sido publicado.')
+        else:
+            messages.info(request, 'Tu comentario ha sido enviado y está pendiente de aprobación.')
+            
+    return redirect('core:blog_detail', slug=post.slug)
+
+@login_required
+@require_POST
+def like_blog_comment(request, pk):
+    comment = get_object_or_404(BlogComment, pk=pk)
+    
+    if request.user in comment.likes.all():
+        comment.likes.remove(request.user)
+        liked = False
+    else:
+        comment.likes.add(request.user)
+        liked = True
+        
+    return JsonResponse({
+        'liked': liked,
+        'total_likes': comment.total_likes()
+    })
+
+@login_required
+@require_POST
+def moderate_blog_comment(request, pk):
+    if not request.user.is_staff:
+        raise PermissionDenied("No tienes permisos para moderar comentarios.")
+        
+    comment = get_object_or_404(BlogComment, pk=pk)
+    action = request.POST.get('action')
+    post_slug = comment.post.slug
+    
+    if action == 'approve':
+        comment.is_approved = True
+        comment.save()
+        messages.success(request, 'Comentario aprobado exitosamente.')
+    elif action == 'delete':
+        comment.delete()
+        messages.success(request, 'Comentario eliminado exitosamente.')
+        
+    return redirect('core:blog_detail', slug=post_slug) 

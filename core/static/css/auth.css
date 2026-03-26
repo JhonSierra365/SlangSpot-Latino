@@ -275,4 +275,277 @@
     .form-check-label {
         color: #999;
     }
-} 
+}
+
+/* Blog Comments Styles */
+.blog-comments-section {
+    padding: 40px 0;
+    background: transparent;
+}
+
+.blog-comments-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.blog-comments-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 24px;
+    padding-left: 10px;
+    border-left: 4px solid #FFC107;
+}
+
+.blog-comments-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.blog-comments-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.blog-comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.blog-comments-author-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.blog-comments-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #FFC107;
+    color: #212121;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.blog-comments-author {
+    font-weight: 700;
+    color: #1a202c;
+    font-size: 1rem;
+}
+
+.blog-comments-date {
+    font-size: 0.85rem;
+    color: #a0aec0;
+}
+
+.blog-comments-text {
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+}
+
+.blog-comments-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #edf2f7;
+    padding-top: 12px;
+}
+
+.blog-comments-btn-like {
+    background: transparent;
+    border: none;
+    color: #718096;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    padding: 0;
+}
+
+.blog-comments-btn-like:hover {
+    color: #ef4444;
+}
+
+.blog-comments-btn-like svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s ease;
+}
+
+.blog-comments-btn-like:hover svg {
+    transform: scale(1.1);
+}
+
+.blog-comments-btn-delete-small {
+    background: transparent;
+    border: none;
+    color: #a0aec0;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.blog-comments-btn-delete-small:hover {
+    color: #ef4444;
+}
+
+.blog-comments-empty {
+    text-align: center;
+    padding: 40px;
+    color: #a0aec0;
+    font-style: italic;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.blog-comments-form-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-top: 30px;
+}
+
+.blog-comments-form-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 16px;
+}
+
+.blog-comments-textarea {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.95rem;
+    color: #4a5568;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+    background: #f8fafc;
+    box-sizing: border-box;
+}
+
+.blog-comments-textarea:focus {
+    outline: none;
+    border-color: #FFC107;
+    background: #ffffff;
+}
+
+.blog-comments-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.blog-comments-form-note {
+    font-size: 0.8rem;
+    color: #a0aec0;
+}
+
+.blog-comments-btn-submit {
+    background: #FFC107;
+    color: #212121;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.blog-comments-btn-submit:hover {
+    background: #e0a800;
+    transform: translateY(-1px);
+}
+
+.blog-comments-staff-panel {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 40px;
+}
+
+.blog-comments-staff-panel h3 {
+    color: #856404;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.blog-comments-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.blog-comments-btn-approve {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.blog-comments-btn-approve:hover {
+    background: #059669;
+}
+
+.blog-comments-btn-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.blog-comments-btn-delete:hover {
+    background: #dc2626;
+}
+
+.blog-comments-login-prompt {
+    text-align: center;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-top: 30px;
+    color: #4a5568;
+}
+
+.blog-comments-login-prompt a {
+    color: #FFC107;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.blog-comments-login-prompt a:hover {
+    text-decoration: underline;
+}
