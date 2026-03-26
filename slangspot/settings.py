@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
+    'cloudinary',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Necesario para allauth
     'compressor',  # Para compresión de archivos estáticos
@@ -240,6 +242,16 @@ COMPRESS_JS_FILTERS = [
 # Configuración de archivos de medios
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Configuración de Cloudinary para Media Uploads en Producción
+import cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default='dqgl9p7a7'),
+    'API_KEY': config('CLOUDINARY_API_KEY', default='468979597659614'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default='Js3zBUzNLctlP5keCTYqE7_oLIE'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Configuración de archivos subidos
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
