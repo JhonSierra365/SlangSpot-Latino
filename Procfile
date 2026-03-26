@@ -1,1 +1,1 @@
-web: python manage.py migrate && python manage.py collectstatic --noinput && python fix_admin.py && gunicorn slangspot.wsgi
+web: python manage.py migrate && python manage.py collectstatic --noinput && gunicorn slangspot.wsgi

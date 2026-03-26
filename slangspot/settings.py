@@ -252,28 +252,16 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
-# URLs de redirección adicionales de allauth
+# URLs de redirección de allauth
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 ACCOUNT_LOGIN_REDIRECT_URL = '/'
 
+# Configuración básica de allauth
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_AUTO_SIGNUP = True
-ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
-ACCOUNT_PASSWORD_MIN_LENGTH = 8
-ACCOUNT_SESSION_REMEMBER = True
-
-# Nueva configuración de rate limits (reemplaza las configuraciones deprecadas)
-ACCOUNT_RATE_LIMITS = {
-    'login_failed': '5/5m',  # 5 intentos fallidos por 5 minutos
-    'signup': '5/1h',        # 5 registros por hora
-    'password_reset': '3/1h', # 3 resets de contraseña por hora
-}
 
 # Configuración de correo electrónico
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
@@ -562,4 +550,3 @@ if DEBUG:
 # ================================
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
