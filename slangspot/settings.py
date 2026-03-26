@@ -123,7 +123,18 @@ WSGI_APPLICATION = 'slangspot.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Configuración de base de datos con soporte para PostgreSQL en producción
-DATABASE_URL = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
+DATABASE_URL = config('DATABASE_URL', default='')
+
+if not DATABASE_URL and not DEBUG:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(
+        "FATAL: DATABASE_URL no está configurada en el entorno. "
+        "En producción (DEBUG=False) es obligatorio usar una base de datos externa tipo PostgreSQL. "
+        "No se permite hacer fallback a SQLite."
+    )
+
+if not DATABASE_URL:
+    DATABASE_URL = f'sqlite:///{BASE_DIR / "db.sqlite3"}'
 
 if DATABASE_URL.startswith('sqlite:///'):
     # SQLite para desarrollo
