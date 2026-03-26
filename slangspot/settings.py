@@ -46,7 +46,7 @@ if not DEBUG:
         environment=config('SENTRY_ENVIRONMENT', default='production'),
     )
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,127.0.0.1:8000,127.0.0.1:8001', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 
 
 # Application definition
@@ -284,7 +284,7 @@ SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)  #
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)  # Cambiar a True en producción
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://127.0.0.1:8000,http://localhost:8000', cast=lambda v: [s.strip() for s in v.split(',')])
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://127.0.0.1:8000,http://localhost:8000').split(',')
 
 # Configuración de caché
 CACHES = {
