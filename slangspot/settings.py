@@ -204,8 +204,8 @@ if DEBUG:
     # En desarrollo, usar el almacenamiento por defecto (sin manifest ni cache)
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
-    # En producción, usar manifest comprimido para versionado y compresión
-    STATICFILES_STORAGE = 'compressor.storage.CompressedManifestStaticFilesStorage'
+    # En producción, usar storage de WhiteNoise para versionado y compresión
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configuración de compresión de archivos estáticos (requiere django-compressor)
 COMPRESS_ENABLED = not DEBUG  # Solo en producción
