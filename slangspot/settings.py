@@ -399,6 +399,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Configuración de logging para seguridad
+# Asegurar que el directorio de logs exista antes de inicializar el handler
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
