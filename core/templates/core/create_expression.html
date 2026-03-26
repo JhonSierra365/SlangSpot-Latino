@@ -2,215 +2,152 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'core/css/forms.css' %}">
 <style>
-/* Estilos específicos para formulario de expresiones */
-.create-expression-container {
-    max-width: 800px;
-    margin: 0 auto;
+/* Unificar CSS minimalista */
+.form-wrapper {
+    max-width: 700px;
+    margin: 3rem auto;
     padding: 2rem;
+    background-color: #FFFFFF;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
 }
-
-.form-header {
+.simple-header {
     text-align: center;
-    margin-bottom: 2rem;
-    padding: 2rem;
-    background: linear-gradient(135deg, #023047, #024059);
-    border-radius: 15px;
-    color: white !important;
+    margin-bottom: 2.5rem;
 }
-
-.form-header * {
-    color: white !important;
-}
-
-.form-header h1 {
-    margin-bottom: 0.5rem;
+.simple-header h1 {
     font-size: 2rem;
-    color: white !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: 700;
+    color: #212121;
+    margin-bottom: 0.5rem;
 }
-
-.form-header p {
-    opacity: 0.9;
-    margin: 0;
-    color: white !important;
+.simple-header p {
+    color: #6c757d;
     font-size: 1.1rem;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    margin: 0;
 }
-
-.form-sections {
-    display: grid;
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
 .form-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    background-color: #FFFFFF;
+    border: none;
+    box-shadow: none;
 }
-
 .form-section h2 {
-    color: #023047;
+    color: #212121;
+    font-size: 1.2rem;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid #FFB703;
+    border-bottom: 1px solid #dee2e6;
 }
-
 .form-group {
     margin-bottom: 1.5rem;
 }
-
-.form-group label {
+.form-group label, .form-label {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #023047;
+    color: #212121;
+    font-size: 1rem;
 }
-
-.form-control {
+.form-control, .form-input, input[type="text"], select, textarea {
     width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #ced4da;
+    padding: 12px 16px;
+    border: 1px solid #dee2e6 !important;
     border-radius: 6px;
     font-size: 1rem;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    background-color: #FFFFFF !important;
+    color: #212121;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+    box-sizing: border-box;
 }
-
-.form-control:focus {
-    border-color: #FFB703;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(255, 183, 3, 0.25);
+.form-control:focus, .form-input:focus, input[type="text"]:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #FFC107 !important;
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.15) !important;
 }
-
-.form-help {
-    display: block;
-    margin-top: 0.5rem;
-    color: #6c757d;
-    font-size: 0.875rem;
-    line-height: 1.4;
+.form-textarea, textarea {
+    min-height: 150px;
+    resize: vertical;
 }
-
-.error-message {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 0.75rem;
-    border-radius: 4px;
-    border: 1px solid #f5c6cb;
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-}
-
-.file-input-container {
-    position: relative;
-}
-
-.file-preview {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #dee2e6;
-}
-
 .form-actions {
     display: flex;
     gap: 1rem;
     justify-content: center;
-    padding: 2rem;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #dee2e6;
 }
-
-.btn {
-    padding: 0.75rem 2rem;
+.btn-minimal {
+    padding: 10px 24px;
     border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
     text-decoration: none;
+    border: none;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    transition: all 0.2s;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
+    justify-content: center;
+    gap: 6px;
 }
-
 .btn-primary {
-    background: #023047;
-    color: #FFB703;
+    background-color: #FFC107 !important;
+    color: #212121 !important;
+    border: 1px solid #FFC107 !important;
+    box-shadow: none !important;
 }
-
 .btn-primary:hover {
-    background: #012233;
-    color: #FFB703;
-    transform: translateY(-2px);
+    background-color: #ffb300 !important;
+    border-color: #ffb300 !important;
 }
-
 .btn-secondary {
-    background: transparent;
-    color: #023047;
-    border: 2px solid #023047;
+    background-color: #FFFFFF !important;
+    color: #212121 !important;
+    border: 1px solid #dee2e6 !important;
 }
-
 .btn-secondary:hover {
-    background: #023047;
-    color: #FFB703;
+    background-color: #f8f9fa !important;
 }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .create-expression-container {
-        padding: 1rem;
-    }
-
-    .form-header {
-        padding: 1.5rem;
-    }
-
-    .form-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
+.error-message, .field-error {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 5px;
 }
+.help-text, .form-help {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+.file-preview { margin-top: 1rem; padding: 1rem; border: 1px solid #dee2e6; border-radius: 6px; background: #f8f9fa; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="create-expression-container">
-    <div class="form-header">
+<div class="form-wrapper">
+    <div class="simple-header">
         <h1>Añadir Nueva Expresión</h1>
         <p>Completa el formulario para añadir una nueva expresión a la lección "{{ lesson.title }}".</p>
 
         <!-- Información contextual de la lección -->
-        <div style="background: rgba(255,255,255,0.15); padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid rgba(255,255,255,0.2);">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+        <div style="background: #FFFFFF; padding: 1.5rem; border-radius: 8px; margin-top: 2rem; border: 1px solid #dee2e6;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; font-size: 0.95rem; text-align: left;">
                 <div>
-                    <strong style="color: #FFB703;">Lección:</strong><br>
-                    <span style="color: white;">{{ lesson.title }}</span>
+                    <strong style="color: #6c757d;">Lección:</strong><br>
+                    <span style="color: #212121; font-weight: 500;">{{ lesson.title }}</span>
                 </div>
                 <div>
-                    <strong style="color: #FFB703;">Nivel:</strong><br>
-                    <span style="color: white;">{{ lesson.get_difficulty_display }}</span>
+                    <strong style="color: #6c757d;">Nivel:</strong><br>
+                    <span style="color: #212121; font-weight: 500;">{{ lesson.get_difficulty_display }}</span>
                 </div>
                 <div>
-                    <strong style="color: #FFB703;">Categoría:</strong><br>
-                    <span style="color: white;">{{ lesson.get_category_display }}</span>
+                    <strong style="color: #6c757d;">Categoría:</strong><br>
+                    <span style="color: #212121; font-weight: 500;">{{ lesson.get_category_display }}</span>
                 </div>
                 <div>
-                    <strong style="color: #FFB703;">País:</strong><br>
-                    <span style="color: white;">{{ lesson.get_country_display }}</span>
+                    <strong style="color: #6c757d;">País:</strong><br>
+                    <span style="color: #212121; font-weight: 500;">{{ lesson.get_country_display }}</span>
                 </div>
             </div>
         </div>
@@ -279,8 +216,8 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Guardar Expresión</button>
-            <a href="{% url 'core:lesson_detail' lesson.id %}" class="btn btn-secondary">Cancelar</a>
+            <a href="{% url 'core:lesson_detail' lesson.id %}" class="btn-minimal btn-secondary">Cancelar</a>
+            <button type="submit" class="btn-minimal btn-primary">Guardar Expresión</button>
         </div>
     </form>
 </div>
@@ -351,55 +288,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<style>
-.card {
-    border: none;
-    border-radius: 15px;
-}
 
-.card-header {
-    border-radius: 15px 15px 0 0 !important;
-    background: #023047 !important;
-    color: #FFB703 !important;
-}
-
-.form-control {
-    border-radius: 10px;
-    border: 1px solid #dee2e6;
-    padding: 12px;
-}
-
-.form-control:focus {
-    border-color: #FFB703 !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 183, 3, 0.25) !important;
-}
-
-.btn {
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-weight: 500;
-}
-
-.btn-primary {
-    background-color: #023047 !important;
-    border-color: #023047 !important;
-    color: #FFB703 !important;
-}
-
-.btn-primary:hover {
-    background-color: #012233 !important;
-    border-color: #012233 !important;
-    color: #FFB703 !important;
-}
-
-.btn-outline-secondary {
-    color: #6c757d;
-    border-color: #6c757d;
-}
-
-.btn-outline-secondary:hover {
-    background-color: #6c757d;
-    color: white;
-}
-</style>
 {% endblock %} 

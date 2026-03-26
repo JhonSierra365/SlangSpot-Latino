@@ -192,28 +192,15 @@ def extract_youtube_video_id(url):
         str or None: ID del video o None si no se encuentra.
     """
     import re
-    from urllib.parse import urlparse, parse_qs
 
     if not url:
         return None
 
-    # Si ya es una URL de embed, extraer el ID
-    if 'youtube.com/embed' in url:
-        return url.split('/')[-1].split('?')[0]
-
-    # Parsear la URL
-    parsed = urlparse(url)
-    if 'youtube.com' in parsed.netloc or 'youtu.be' in parsed.netloc:
-        if parsed.netloc == 'youtu.be':
-            # youtu.be/short_id
-            video_id = parsed.path.lstrip('/')
-        else:
-            # youtube.com/watch?v=...
-            query = parse_qs(parsed.query)
-            video_id = query.get('v', [None])[0]
-
-        if video_id and len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-            return video_id
+    regex = r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})'
+    match = re.search(regex, url)
+    
+    if match:
+        return match.group(1)
 
     return None
 

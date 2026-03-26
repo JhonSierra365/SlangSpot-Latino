@@ -4,13 +4,10 @@
 {% block title %}Crear Publicación - Foro{% endblock %}
 
 {% block content %}
-<div class="create-post-container">
-    <div class="create-post-header">
-        <h1 class="create-post-title">
-            <i class="fas fa-edit"></i>
-            Crear Nueva Publicación
-        </h1>
-        <p class="create-post-subtitle">Comparte tus pensamientos, preguntas o recursos con la comunidad</p>
+<div class="form-wrapper">
+    <div class="simple-header">
+        <h1>Crear Nueva Publicación</h1>
+        <p>Comparte tus pensamientos, preguntas o recursos con la comunidad</p>
     </div>
 
     <div class="create-post-form-container">
@@ -71,12 +68,10 @@
             </div>
 
             <div class="form-actions">
-                <a href="{% url 'core:forum_index' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i>
+                <a href="{% url 'core:forum_index' %}" class="btn-minimal btn-secondary">
                     Cancelar
                 </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane"></i>
+                <button type="submit" class="btn-minimal btn-primary">
                     Publicar
                 </button>
             </div>
@@ -85,203 +80,129 @@
 </div>
 
 <style>
-.create-post-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+/* Unificar CSS minimalista */
+.form-wrapper {
+    max-width: 700px;
+    margin: 3rem auto;
+    padding: 0 1rem;
+    background: #FFFFFF;
 }
-
-.create-post-header {
+.simple-header {
     text-align: center;
-    margin-bottom: 2rem;
-    padding: 2rem;
-    background: linear-gradient(135deg, #023047, #024059);
-    border-radius: 15px;
-    color: white !important;
+    margin-bottom: 2.5rem;
 }
-
-.create-post-header * {
-    color: white !important;
-}
-
-.create-post-title {
-    margin-bottom: 0.5rem;
+.simple-header h1 {
     font-size: 2rem;
-    color: white !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: 700;
+    color: #212121;
+    margin-bottom: 0.5rem;
 }
-
-.create-post-subtitle {
-    opacity: 0.9;
-    margin: 0;
-    color: white !important;
+.simple-header p {
+    color: #6c757d;
     font-size: 1.1rem;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    margin: 0;
 }
-
 .create-post-form-container {
     background: white;
-    border-radius: 16px;
-    padding: 40px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
-
 .create-post-form {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 1.5rem;
 }
-
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    margin-bottom: 0;
 }
-
-.form-label {
-    font-weight: 600;
-    color: #023047;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-}
-
 .form-label i {
-    color: #FFB703;
+    display: none;
 }
-
-.create-post-form input[type="text"],
-.create-post-form select,
-.create-post-form textarea {
-    padding: 15px 20px;
-    border: 2px solid #ced4da;
-    border-radius: 12px;
+.form-group label, .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #212121;
     font-size: 1rem;
+}
+.form-control, .form-input, input[type="text"], select, textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #FFFFFF;
+    color: #212121;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
     font-family: inherit;
-    transition: all 0.3s ease;
-    background: white;
-    color: #023047;
+    box-sizing: border-box;
 }
-
-.create-post-form input[type="text"]:focus,
-.create-post-form select:focus,
-.create-post-form textarea:focus {
+.form-control:focus, .form-input:focus, input[type="text"]:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: #FFB703;
-    box-shadow: 0 0 0 4px rgba(255, 183, 3, 0.3);
-    background: white;
+    border: 1px solid #FFC107 !important;
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.15) !important;
 }
-
-.create-post-form textarea {
-    min-height: 200px;
+.form-textarea, textarea {
+    min-height: 150px;
     resize: vertical;
-    line-height: 1.6;
 }
-
-.field-error {
-    color: #dc3545;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 5px;
-}
-
-.form-help {
-    color: #6c757d;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 5px;
-}
-
-.form-help i {
-    color: #FFB703;
-}
-
 .form-actions {
     display: flex;
-    gap: 15px;
+    gap: 1rem;
     justify-content: center;
-    padding-top: 20px;
-    border-top: 1px solid #e9ecef;
+    margin-top: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid #dee2e6;
 }
-
-.btn {
-    padding: 12px 24px;
-    border-radius: 8px;
+.btn-minimal {
+    padding: 10px 24px;
+    border-radius: 6px;
     font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
     text-decoration: none;
+    border: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
+    justify-content: center;
+    gap: 6px;
 }
-
 .btn-primary {
-    background: #023047;
-    color: #FFB703;
-    border: 2px solid #023047;
+    background-color: #FFC107 !important;
+    color: #212121 !important;
+    border: 1px solid #FFC107 !important;
+    box-shadow: none !important;
 }
-
 .btn-primary:hover {
-    background: #012233;
-    color: #FFB703;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(2, 48, 71, 0.3);
+    background-color: #ffb300 !important;
+    border-color: #ffb300 !important;
 }
-
 .btn-secondary {
-    background: transparent;
-    color: #023047;
-    border: 2px solid #023047;
+    background-color: #FFFFFF !important;
+    color: #212121 !important;
+    border: 1px solid #dee2e6 !important;
 }
-
 .btn-secondary:hover {
-    background: #023047;
-    color: #FFB703;
+    background-color: #f8f9fa !important;
 }
-
-.alert {
-    padding: 15px 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.error-message, .field-error {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 5px;
 }
-
+.field-error i { display: none; }
+.help-text, .form-help {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+.form-help i { display: none; }
 .alert-danger {
-    background: linear-gradient(135deg, #fed7d7, #feb2b2);
+    padding: 15px;
+    border-radius: 6px;
+    background: #fef5f5;
     color: #c53030;
     border: 1px solid #feb2b2;
+    margin-bottom: 20px;
 }
-
-@media (max-width: 768px) {
-    .create-post-container {
-        padding: 10px;
-    }
-    
-    .create-post-title {
-        font-size: 2rem;
-    }
-
-    .create-post-form-container {
-        padding: 25px;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .btn {
-        justify-content: center;
-    }
-}
+.alert-danger i { display: none; }
 </style>
 {% endblock %} 

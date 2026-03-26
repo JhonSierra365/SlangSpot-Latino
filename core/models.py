@@ -208,32 +208,21 @@ class Lesson(BaseModel):
 
     def get_video_embed_url(self):
         """
-        Convierte URLs de YouTube al formato de embed correcto.
-
-        Retorna:
-            str or None: URL de embed de YouTube o None si no hay video_url.
+        Extrae infaliblemente el ID de cualquier enlace de YouTube y retorna una URL embed limpia.
         """
         if not self.video_url:
             return None
 
-        # Si ya es una URL de embed, la devuelve tal como está
-        if 'youtube.com/embed' in self.video_url:
-            return self.video_url
-
-        # Parsear la URL
-        parsed = urlparse(self.video_url)
-        if 'youtube.com' in parsed.netloc or 'youtu.be' in parsed.netloc:
-            if parsed.netloc == 'youtu.be':
-                # youtu.be/short_id
-                video_id = parsed.path.lstrip('/')
-            else:
-                # youtube.com/watch?v=...
-                query = parse_qs(parsed.query)
-                video_id = query.get('v', [None])[0]
-
-            if video_id and len(video_id) == 11 and re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
-                return f'https://www.youtube.com/embed/{video_id}'
-
+        # Regex implacable que captura el ID de 11 caracteres ignorando toda basura paramétrica.
+        # Soporta: youtube.com/watch?v=, youtu.be/, /embed/, /shorts/ e ignora si falta el https://
+        regex = r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})'
+        match = re.search(regex, self.video_url)
+        
+        if match:
+            video_id = match.group(1)
+            # Retornamos el embed totalmente puro. Agregamos ?rel=0 por buenas prácticas de UI.
+            return f'https://www.youtube.com/embed/{video_id}?rel=0'
+            
         return None
 
     def get_video_thumbnail_url(self):

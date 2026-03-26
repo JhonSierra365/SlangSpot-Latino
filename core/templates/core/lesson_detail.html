@@ -19,19 +19,20 @@
                         {{ lesson.get_country_display }}
                     </span>
                 </div>
-                {% if user.is_staff %}
-                <div class="admin-actions">
-                    <a href="{% url 'core:edit_lesson' lesson.id %}" class="btn btn-warning">
-                        <i class="fas fa-edit"></i> Editar
-                    </a>
-                    <a href="{% url 'core:delete_lesson' lesson.id %}" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
+
+    {% if user.is_staff %}
+    <div class="admin-bar">
+        <a href="{% url 'core:edit_lesson' lesson.id %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <a href="{% url 'core:delete_lesson' lesson.id %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Eliminar
+        </a>
+    </div>
+    {% endif %}
 
     <!-- Contenido Principal -->
     <div class="lesson-content">
@@ -71,8 +72,10 @@
                     <div class="video-container" {% if lesson.get_video_thumbnail_url %}style="display: none;"{% endif %}>
                         <iframe
                             src="{{ lesson.get_video_embed_url }}"
+                            title="{{ lesson.title|escape }}"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
                             allowfullscreen
                             loading="lazy">
                         </iframe>
@@ -221,19 +224,17 @@ function completarLeccion(pk) {
 </script>
 
 <style>
-/* Sobrescribir colores blancos */
-.difficulty-beginner, .difficulty-intermediate, .difficulty-advanced,
-.category-slang, .category-sayings, .category-expressions, .category-idioms, .country {
-    background: #FFB703 !important;
-    color: #023047 !important;
-}
-
-.lesson-card, .lesson-content, .lesson-meta {
+/* Badge Styles Overrides */
+.lesson-card, .lesson-content {
     background: #FFFFFF !important;
     color: #023047 !important;
 }
 
-.lesson-card h3, .lesson-card p, .lesson-meta span {
+.lesson-meta {
+    background: transparent !important;
+}
+
+.lesson-card h3, .lesson-card p {
     color: #023047 !important;
 }
 
@@ -284,6 +285,15 @@ h1, h2, h3, h4, h5, h6, p, .lesson-meta, .lesson-footer {
     margin-bottom: 2rem;
 }
 
+.lesson-hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 0;
+}
+
 .hero-overlay {
     position: absolute;
     top: 0;
@@ -301,12 +311,15 @@ h1, h2, h3, h4, h5, h6, p, .lesson-meta, .lesson-footer {
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 .hero-content h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    color: #FFFFFF !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
 }
 
 .lesson-meta {
@@ -316,10 +329,23 @@ h1, h2, h3, h4, h5, h6, p, .lesson-meta, .lesson-footer {
 }
 
 .badge {
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.5) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 20px !important;
+    padding: 4px 12px !important;
     font-size: 0.9rem;
     font-weight: 500;
+}
+
+.admin-bar {
+    background: #FFFFFF;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 2rem;
 }
 
 .lesson-content {
