@@ -165,15 +165,6 @@ else:
                 conn_health_checks=True,
             )
         }
-        
-        # Optimizaciones exclusivas para PostgreSQL
-        DATABASES['default']['OPTIONS'] = {
-            'client_encoding': 'UTF8',
-            'default_transaction_isolation': 'read_committed',
-            'timezone': 'UTC',
-        }
-        DATABASES['default']['CONN_MAX_AGE'] = 60
-        DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 
 # Password validation
