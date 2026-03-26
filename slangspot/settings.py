@@ -209,7 +209,9 @@ USE_TZ = True
 
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [
+    BASE_DIR / 'core' / 'static',
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Optimización de archivos estáticos
