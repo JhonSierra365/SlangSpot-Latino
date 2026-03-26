@@ -1,9 +1,9 @@
 {
   "build": {
-    "buildCommand": "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    "buildCommand": "pip install -r requirements.txt"
   },
   "deploy": {
-    "startCommand": "python force_video_update.py && gunicorn slangspot.wsgi --bind 0.0.0.0:$PORT --log-file -",
+    "startCommand": "python manage.py collectstatic --noinput && gunicorn slangspot.wsgi:application --bind 0.0.0.0:$PORT",
     "restartPolicyType": "ON_FAILURE"
   }
 }
