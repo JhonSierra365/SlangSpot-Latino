@@ -1,1 +1,1 @@
-web: python manage.py migrate && python manage.py collectstatic --noinput && python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); u = User.objects.filter(email='jasierra8767@gmail.com').first(); u and setattr(u, 'is_staff', True); u and setattr(u, 'is_superuser', True); u and u.save()" && gunicorn slangspot.wsgi
+web: python manage.py migrate && python manage.py collectstatic --noinput && python fix_admin.py && gunicorn slangspot.wsgi
