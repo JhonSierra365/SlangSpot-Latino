@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Sentry configuration - Solo en producción
 if not DEBUG:
@@ -73,6 +73,7 @@ if DEBUG and 'test' not in sys.argv:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,10 +91,7 @@ MIDDLEWARE = [
 if DEBUG and 'test' not in sys.argv:
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
-# WhiteNoise middleware en producción para servir archivos estáticos eficientemente
-# Se inserta justo después de SecurityMiddleware
-if not DEBUG:
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+# WhiteNoise integrado estáticamente en la lista MIDDLEWARE
 
 ROOT_URLCONF = 'slangspot.urls'
 
