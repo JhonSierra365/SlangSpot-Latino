@@ -245,10 +245,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Configuración de Cloudinary para Media Uploads en Producción
 import cloudinary
+import os
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default='dqgl9p7a7'),
-    'API_KEY': config('CLOUDINARY_API_KEY', default='468979597659614'),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default='Js3zBUzNLctlP5keCTYqE7_oLIE'),
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
