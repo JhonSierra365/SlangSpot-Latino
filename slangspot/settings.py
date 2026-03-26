@@ -158,9 +158,24 @@ else:
         }
     elif DATABASE_URL.startswith('postgresql://'):
         import dj_database_url
+        from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
+
+        # 1. Parsear la URL
+        parsed_url = urlparse(DATABASE_URL)
+        query_params = parse_qs(parsed_url.query)
+
+        # 2. Eliminar el parámetro conflictivo si existe
+        if 'default_transaction_isolation' in query_params:
+            del query_params['default_transaction_isolation']
+
+        # 3. Reconstruir la URL limpia
+        clean_query = urlencode(query_params, doseq=True)
+        clean_db_url = urlunparse(parsed_url._replace(query=clean_query))
+
+        # 4. Usar la URL limpia en DATABASES
         DATABASES = {
             'default': dj_database_url.config(
-                default=DATABASE_URL,
+                default=clean_db_url,
                 conn_max_age=600,
                 conn_health_checks=True,
             )
