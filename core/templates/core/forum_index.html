@@ -159,7 +159,7 @@
 
 <style>
 .forum-header, .forum-section, .forum-list-container {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 
@@ -201,20 +201,24 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 
 .forum-header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    text-align: center;
+    gap: 15px;
     margin-bottom: 30px;
     padding: 30px;
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     border-radius: 16px;
     color: white;
 }
 
 .forum-title {
     font-size: 2.5rem;
-    font-weight: 800;
+    font-weight: 700;
     margin: 0;
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 15px;
 }
@@ -243,17 +247,19 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 }
 
 .search-form .input-group {
-    max-width: 600px;
+    display: flex;
+    max-width: 500px;
     margin: 0 auto;
 }
 
 .search-form .input-group input {
+    flex: 1;
     font-size: 1.2rem !important;
     padding: 1rem 1.5rem !important;
     height: auto !important;
-    border-radius: 10px !important;
+    border-radius: 10px 0 0 10px !important;
     border: 2px solid #023047 !important;
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 
@@ -271,7 +277,8 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 .search-form .input-group .btn {
     font-size: 1.2rem !important;
     padding: 1rem 1.5rem !important;
-    border-radius: 10px !important;
+    border-radius: 0 10px 10px 0 !important;
+    margin-left: -2px !important;
     background: #023047 !important;
     color: #FFB703 !important;
     border: 2px solid #023047 !important;
@@ -284,6 +291,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 
 .category-filters {
     display: flex;
+    justify-content: center;
     gap: 10px;
     flex-wrap: wrap;
 }
@@ -356,8 +364,8 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 }
 
 .post-title {
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 600;
     margin: 0 0 10px 0;
 }
 
@@ -384,7 +392,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #6c757d;
 }
 
@@ -412,7 +420,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
     align-items: center;
     gap: 5px;
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 .empty-state {
@@ -470,12 +478,12 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 
 /* Sobrescribir todos los colores específicos */
 .forum-header, .forum-title, .forum-subtitle {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 
 .forum-header {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 
@@ -485,12 +493,12 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 
 /* Asegurar que todos los elementos usen la paleta correcta */
 .forum-container, .forum-header, .forum-filters, .forum-post, .post-content {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 
 .forum-post {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 
@@ -507,7 +515,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 }
 
 .category-filter {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
     border-color: #023047 !important;
 }
@@ -534,7 +542,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 }
 
 .empty-state {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 
@@ -547,7 +555,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 }
 
 .pagination .page-link {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
     border-color: #023047 !important;
 }
@@ -559,7 +567,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 }
 
 .search-form .form-control {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
     border-color: #023047 !important;
 }
@@ -570,7 +578,7 @@ h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
 
 /* Sobrescribir colores morados */
 .forum-header {
-    background: #FEFAE0 !important;
+    background: #FFFFFF !important;
     color: #023047 !important;
 }
 

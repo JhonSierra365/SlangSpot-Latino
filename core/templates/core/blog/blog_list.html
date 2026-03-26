@@ -5,8 +5,14 @@
 
 {% block extra_css %}
 <style>
+    .blog-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
     .hero-section {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         padding: 60px 0;
     }
@@ -25,9 +31,12 @@
     .hero-subtitle {
         font-size: 1.1rem;
         line-height: 1.6;
-        opacity: 0.95;
-        max-width: 500px;
-        margin: 0 auto 2rem auto;
+        opacity: 0.9;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 2rem;
+        white-space: normal;
     }
     
     .search-container {
@@ -90,7 +99,7 @@
     .filter-btn {
         padding: 8px 16px;
         background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.2);
         color: white;
         border-radius: 20px;
         font-size: 0.9rem;
@@ -109,7 +118,7 @@
     
     .create-section {
         text-align: center;
-        margin-top: 1.5rem;
+        margin-top: 1rem;
     }
     
     .create-btn {
@@ -134,7 +143,7 @@
     }
     
     .blog-section {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         padding: 60px 0;
     }
@@ -155,7 +164,7 @@
     }
     
     .post-card {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         border-radius: 12px;
         overflow: hidden;
@@ -219,7 +228,7 @@
     }
     
     .post-title {
-        font-size: 1.1rem;
+        font-size: 1.3rem;
         font-weight: 600;
         color: #2d3748;
         margin-bottom: 10px;
@@ -249,7 +258,7 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         flex: 1;
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
     
     .post-meta {
@@ -394,7 +403,7 @@
 
     /* Sobrescribir todos los colores específicos */
     .blog-header, .hero-title, .hero-subtitle, .section-title {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
     }
 
@@ -404,12 +413,12 @@
 
     /* Asegurar que todos los elementos usen la paleta correcta */
     .blog-container, .blog-header, .filters-section, .post-card, .post-content {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
     }
 
     .blog-card, .blog-meta, .blog-footer, .badge, .no-blogs-content {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         border: none !important;
     }
@@ -435,19 +444,19 @@
     }
 
     .post-card {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
     }
 
     .post-content {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
     }
 
     .blog-header, .filters-section {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
     }
 
     .empty-state {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
     }
 
@@ -461,7 +470,7 @@
     }
 
     .page-btn, .page-info {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         border-color: #023047 !important;
     }
@@ -473,14 +482,14 @@
 
     /* Sobrescribir todos los colores blancos y transparentes */
     .search-bar {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         border-color: #023047 !important;
     }
 
     .search-bar:focus {
         border-color: #FFB703 !important;
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
     }
 
     .search-bar::placeholder {
@@ -496,7 +505,7 @@
     }
 
     .filter-btn {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         border-color: #023047 !important;
     }
@@ -513,7 +522,7 @@
     }
 
     .post-content {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
     }
 
@@ -547,7 +556,7 @@
     }
 
     .page-btn, .page-info {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
         border-color: #023047 !important;
     }
@@ -558,7 +567,7 @@
     }
 
     .empty-state {
-        background: #FEFAE0 !important;
+        background: #FFFFFF !important;
         color: #023047 !important;
     }
 
@@ -593,9 +602,10 @@
 {% endblock %}
 
 {% block content %}
+<div class="blog-container">
 <!-- Hero Section -->
 <section class="hero-section">
-    <div class="container mx-auto px-4">
+    <div>
         <div class="hero-content">
             <h1 class="hero-title">Blog SlangSpot</h1>
             <p class="hero-subtitle">
@@ -644,7 +654,7 @@
 
 <!-- Blog Posts Section -->
 <section class="blog-section">
-    <div class="container mx-auto px-4">
+    <div>
         {% if posts %}
         <h2 class="section-title">Artículos Recientes</h2>
         <div class="posts-grid">
@@ -758,4 +768,5 @@
         {% endif %}
     </div>
 </section>
+</div>
 {% endblock %} 
