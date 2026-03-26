@@ -415,12 +415,12 @@ class SiteSettings(BaseModel):
     site_name = models.CharField(max_length=100, default="SlangSpot Latino")
     video_explicativo_url = models.URLField(
         max_length=500, 
-        default="https://www.youtube.com/@aprendeconjhons",
+        default="https://www.youtube.com/watch?v=BnC2zl5Y-ds",
         help_text="URL del video que explica qué es SlangSpot Latino"
     )
     video_explicativo_id = models.CharField(
         max_length=20,
-        default="rsjRSa_B1P0",
+        default="BnC2zl5Y-ds",
         blank=True,
         help_text="ID del video de YouTube (ej: dQw4w9WgXcQ) para reproducir en la página"
     )
@@ -467,8 +467,8 @@ class SiteSettings(BaseModel):
             is_active=True,
             defaults={
                 'site_name': 'SlangSpot Latino',
-                'video_explicativo_url': 'https://www.youtube.com/@aprendeconjhons',
-                'video_explicativo_id': 'rsjRSa_B1P0',
+                'video_explicativo_url': 'https://www.youtube.com/watch?v=BnC2zl5Y-ds',
+                'video_explicativo_id': 'BnC2zl5Y-ds',
                 'video_explicativo_titulo': '¿Qué es SlangSpot Latino?',
                 'video_explicativo_descripcion': 'Descubre qué es SlangSpot Latino y cómo te ayudará a aprender español latino de forma auténtica'
             }
