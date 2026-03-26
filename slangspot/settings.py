@@ -123,56 +123,57 @@ WSGI_APPLICATION = 'slangspot.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Configuración de base de datos con soporte para PostgreSQL en producción
+import sys
 DATABASE_URL = config('DATABASE_URL', default='')
 
-if not DATABASE_URL and not DEBUG:
-    from django.core.exceptions import ImproperlyConfigured
-    raise ImproperlyConfigured(
-        "FATAL: DATABASE_URL no está configurada en el entorno. "
-        "En producción (DEBUG=False) es obligatorio usar una base de datos externa tipo PostgreSQL. "
-        "No se permite hacer fallback a SQLite."
-    )
+IS_BUILDING_STATICS = 'collectstatic' in sys.argv
 
-if not DATABASE_URL:
-    DATABASE_URL = f'sqlite:///{BASE_DIR / "db.sqlite3"}'
-
-if DATABASE_URL.startswith('sqlite:///'):
-    # SQLite para desarrollo
+if not DATABASE_URL and IS_BUILDING_STATICS:
+    # Build phase en Railway: Forzamos BD en memoria para que Django compile los estáticos
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / DATABASE_URL.replace('sqlite:///', ''),
+            'NAME': ':memory:',
         }
     }
-elif DATABASE_URL.startswith('postgresql://'):
-    # PostgreSQL para producción
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-
-    # Optimizaciones para PostgreSQL
-    DATABASES['default']['OPTIONS'] = {
-        'client_encoding': 'UTF8',
-        'default_transaction_isolation': 'read_committed',
-        'timezone': 'UTC',
-    }
-
-    # Configuración de pool de conexiones para PostgreSQL
-    DATABASES['default']['CONN_MAX_AGE'] = 60
-    DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 else:
-    # Fallback a SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+    if not DATABASE_URL and not DEBUG:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(
+            "FATAL: DATABASE_URL no está configurada en el entorno. "
+            "En producción (DEBUG=False) es obligatorio usar una base de datos externa tipo PostgreSQL. "
+            "No se permite hacer fallback a SQLite."
+        )
+
+    if not DATABASE_URL:
+        # Modo desarrollo sin variables de entorno
+        DATABASE_URL = f'sqlite:///{BASE_DIR / "db.sqlite3"}'
+
+    if DATABASE_URL.startswith('sqlite:///'):
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / DATABASE_URL.replace('sqlite:///', ''),
+            }
         }
-    }
+    elif DATABASE_URL.startswith('postgresql://'):
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+        
+        # Optimizaciones exclusivas para PostgreSQL
+        DATABASES['default']['OPTIONS'] = {
+            'client_encoding': 'UTF8',
+            'default_transaction_isolation': 'read_committed',
+            'timezone': 'UTC',
+        }
+        DATABASES['default']['CONN_MAX_AGE'] = 60
+        DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 
 # Password validation
