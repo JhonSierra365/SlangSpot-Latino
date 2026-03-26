@@ -204,7 +204,7 @@ class Lesson(BaseModel):
         """
         if self.cover_image and hasattr(self.cover_image, 'url'):
             return self.cover_image.url
-        return '/static/core/images/default-cover.jpg'
+        return '/static/core/images/default-cover.jpg'  # noqa: served by WhiteNoise from core/static/core/images/
 
     def get_video_embed_url(self):
         """
@@ -584,7 +584,7 @@ class BlogPost(BaseModel):
     def get_featured_image_url(self):
         if self.featured_image and hasattr(self.featured_image, 'url'):
             return self.featured_image.url
-        return '/static/core/images/default-cover.jpg'
+        return '/static/core/images/default-cover.jpg'  # noqa: served by WhiteNoise from core/static/core/images/
 
     def get_category_display(self):
         return dict(self.CATEGORY_CHOICES).get(self.category, self.category)
