@@ -47,6 +47,10 @@ if not DEBUG:
     )
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
+if 'slangspot-latino-production.up.railway.app' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('slangspot-latino-production.up.railway.app')
+
+CSRF_TRUSTED_ORIGINS = ['https://slangspot-latino-production.up.railway.app']
 
 
 # Application definition

@@ -1,9 +1,0 @@
-{
-  "build": {
-    "buildCommand": "python manage.py collectstatic --noinput"
-  },
-  "deploy": {
-    "releaseCommand": "python manage.py migrate --noinput",
-    "startCommand": "gunicorn slangspot.wsgi --log-file -"
-  }
-}
