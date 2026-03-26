@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 user = User.objects.filter(email='jasierra8767@gmail.com').first()
 if user:
+    user.is_active = True
     user.is_staff = True
     user.is_superuser = True
     user.save()
