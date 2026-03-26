@@ -555,3 +555,10 @@ if DEBUG:
         'localhost',
         '0.0.0.0',
     ]
+
+# ================================
+# CONFIGURACIÓN PARA OAUTH (PRODUCCIÓN)
+# ================================
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'

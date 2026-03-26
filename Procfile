@@ -1,1 +1,1 @@
-web: python manage.py migrate && python manage.py collectstatic --noinput && gunicorn slangspot.wsgi:application --bind 0.0.0.0:$PORT
+web: python manage.py migrate && python manage.py collectstatic --noinput && python -c "import os, django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'slangspot.settings'); django.setup(); from django.contrib.sites.models import Site; Site.objects.filter(id=1).update(domain='slangspot-latino-production.up.railway.app', name='SlangSpot Latino')" && gunicorn slangspot.wsgi:application --bind 0.0.0.0:$PORT
