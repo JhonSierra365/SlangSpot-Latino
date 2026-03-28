@@ -5,606 +5,221 @@
 
 {% block content %}
 <div class="forum-container">
-    <div class="forum-header">
-        <div class="forum-header-content">
-            <h1 class="forum-title">
-                <i class="fas fa-comments"></i>
-                Foro de la Comunidad
-            </h1>
-            <p class="forum-subtitle">Comparte, pregunta y aprende con otros estudiantes de español latino</p>
-        </div>
-        <div class="forum-actions">
+
+    <!-- Header Section (same as blog/lessons) -->
+    <div class="lessons-header">
+        <div class="header-content">
+            <h1>Foro de la Comunidad</h1>
+            <p>Comparte, pregunta y aprende con otros estudiantes de español latino</p>
+            {% if user.is_staff %}
             <a href="{% url 'core:create_post' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i>
-                Nueva Publicación
+                <i class="fas fa-plus"></i> Nueva Publicación
             </a>
+            {% endif %}
         </div>
     </div>
 
-    <div class="forum-filters">
-        <div class="search-box">
-            <form method="get" class="search-form">
-                <div class="input-group">
-                    <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Buscar publicaciones...">
-                    <button type="submit" class="btn btn-outline-secondary">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
+    <!-- Filters Section (same as blog/lessons) -->
+    <div class="filters-section">
+        <div class="filters-form">
+            <form method="get" class="search-box">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Buscar publicaciones...">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
             </form>
-        </div>
-        
-        <div class="category-filters">
-            <a href="{% url 'core:forum_index' %}" class="category-filter {% if not current_category %}active{% endif %}">
-                Todas
-            </a>
-            {% for category_value, category_name in categories %}
-                <a href="{% url 'core:forum_index' %}?category={{ category_value }}" 
-                   class="category-filter {% if current_category == category_value %}active{% endif %}">
-                    {{ category_name }}
-                </a>
-            {% endfor %}
+            <div class="category-chips">
+                <a href="{% url 'core:forum_index' %}"
+                   class="chip {% if not current_category %}active{% endif %}">Todas</a>
+                {% for cat_val, cat_name in categories %}
+                <a href="{% url 'core:forum_index' %}?category={{ cat_val }}"
+                   class="chip {% if current_category == cat_val %}active{% endif %}">{{ cat_name }}</a>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
+    <!-- Posts List -->
     <div class="forum-posts">
         {% if posts %}
             {% for post in posts %}
-                <div class="forum-post {% if post.is_pinned %}pinned{% endif %}">
-                    {% if post.is_pinned %}
-                        <div class="pin-badge">
-                            <i class="fas fa-thumbtack"></i> Fijado
-                        </div>
-                    {% endif %}
-                    
-                    <div class="post-header">
+            <div class="post-card {% if post.is_pinned %}pinned{% endif %}">
+                {% if post.is_pinned %}
+                <div class="pin-badge"><i class="fas fa-thumbtack"></i> Fijado</div>
+                {% endif %}
+
+                <div class="post-inner">
+                    <div class="post-main">
                         <h2 class="post-title">
                             <a href="{% url 'core:post_detail' post.pk %}">{{ post.title }}</a>
                             {% if post.is_closed %}
-                                <span class="closed-badge">Cerrado</span>
+                            <span class="closed-badge">Cerrado</span>
                             {% endif %}
                         </h2>
                         <div class="post-meta">
-                            <span class="post-author">
-                                <i class="fas fa-user"></i>
-                                {{ post.author.username }}
-                            </span>
-                            <span class="post-date">
-                                <i class="fas fa-clock"></i>
-                                {{ post.created_at|date:"d/m/Y H:i" }}
-                            </span>
-                            <span class="post-category">
-                                <i class="fas fa-tag"></i>
-                                {{ post.get_category_display }}
-                            </span>
+                            <span><i class="fas fa-user"></i> {{ post.author.username }}</span>
+                            <span><i class="fas fa-clock"></i> {{ post.created_at|date:"d/m/Y" }}</span>
+                            <span class="badge"><i class="fas fa-tag"></i> {{ post.get_category_display }}</span>
                         </div>
+                        <p class="post-excerpt">{{ post.content|truncatewords:40 }}</p>
                     </div>
-                    
-                    <div class="post-content">
-                        {{ post.content|truncatewords:50|linebreaks }}
-                    </div>
-                    
                     <div class="post-stats">
-                        <div class="stat-item">
-                            <i class="fas fa-eye"></i>
-                            <span>{{ post.views }} vistas</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-comments"></i>
-                            <span>{{ post.comments.count }} comentarios</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-heart"></i>
-                            <span>{{ post.likes.count }} likes</span>
-                        </div>
+                        <span><i class="fas fa-eye"></i> {{ post.views }}</span>
+                        <span><i class="fas fa-comments"></i> {{ post.comments.count }}</span>
+                        <span><i class="fas fa-heart"></i> {{ post.likes.count }}</span>
+                        <a href="{% url 'core:post_detail' post.pk %}" class="btn btn-primary btn-sm">Ver →</a>
                     </div>
                 </div>
+            </div>
             {% endfor %}
-            
+
             {% if is_paginated %}
-                <div class="pagination-container">
-                    <nav aria-label="Navegación de páginas">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
-                                        <i class="fas fa-angle-double-left"></i>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
-                                        <i class="fas fa-angle-left"></i>
-                                    </a>
-                                </li>
-                            {% endif %}
-                            
-                            <li class="page-item active">
-                                <span class="page-link">
-                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                                </span>
-                            </li>
-                            
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
-                                        <i class="fas fa-angle-right"></i>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
-            {% endif %}
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="fas fa-comments"></i>
-                </div>
-                <h3>No hay publicaciones</h3>
-                <p>{% if search_query %}No se encontraron publicaciones para "{{ search_query }}"{% else %}Aún no hay publicaciones en el foro{% endif %}</p>
-                {% if not search_query %}
-                    <a href="{% url 'core:create_post' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Crear la primera publicación
-                    </a>
+            <div class="filters-actions" style="margin-top:1.5rem;">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" class="btn btn-secondary">← Anterior</a>
+                {% endif %}
+                <span class="btn btn-secondary" style="cursor:default;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" class="btn btn-secondary">Siguiente →</a>
                 {% endif %}
             </div>
+            {% endif %}
+
+        {% else %}
+        <div class="no-lessons">
+            <div class="no-lessons-content">
+                <i class="fas fa-comments"></i>
+                <h3>No hay publicaciones</h3>
+                <p>{% if search_query %}No se encontraron resultados para "{{ search_query }}"{% else %}Aún no hay publicaciones en el foro{% endif %}</p>
+                {% if user.is_staff and not search_query %}
+                <a href="{% url 'core:create_post' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear la primera publicación
+                </a>
+                {% endif %}
+            </div>
+        </div>
         {% endif %}
     </div>
+
 </div>
 
 <style>
-.forum-header, .forum-section, .forum-list-container {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.btn.btn-primary {
-    background: #023047;
-    color: #FFB703;
-    border: none;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-
-.btn.btn-primary:hover {
-    background: #012233;
-    color: #FFB703;
-}
-
-.btn.btn-secondary {
-    background: transparent;
-    color: #023047;
-    border: 2px solid #023047;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-
-.btn.btn-secondary:hover {
-    background: #023047;
-    color: #FFB703;
-}
-
-h1, h2, h3, h4, h5, h6, p, .forum-meta, .forum-footer {
-    color: #023047 !important;
-}
-
 .forum-container {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 2rem 1rem;
 }
 
-.forum-header {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+/* Header — identical to blog/lessons */
+.lessons-header {
+    background: #FFFFFF;
+    padding: 3rem 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
     text-align: center;
-    gap: 15px;
-    margin-bottom: 30px;
-    padding: 30px;
-    background: #FFFFFF !important;
-    border-radius: 16px;
-    color: white;
+}
+.header-content h1 { font-size: 2.5rem; font-weight: 700; color: #023047; margin-bottom: 0.5rem; }
+.header-content p  { font-size: 1.1rem; color: #023047; opacity: 0.85; margin-bottom: 1.5rem; }
+
+/* Filters */
+.filters-section {
+    background: #FFFFFF;
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+    margin-bottom: 2rem;
+}
+.filters-form { display: flex; flex-direction: column; gap: 1rem; }
+.search-box { display: flex; gap: 0.5rem; max-width: 500px; margin: 0 auto; width: 100%; }
+.search-box input {
+    flex: 1; padding: 0.9rem 1rem;
+    border: 2px solid #e9ecef; border-radius: 10px;
+    font-size: 1rem; color: #023047; background: #fff; transition: border-color 0.2s;
+}
+.search-box input:focus { outline: none; border-color: #FFB703; }
+.category-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.chip {
+    padding: 7px 16px; border-radius: 20px; text-decoration: none;
+    font-size: 0.88rem; font-weight: 600;
+    color: #023047; background: #f8f9fa; border: 2px solid #e9ecef;
+    transition: all 0.2s;
+}
+.chip:hover, .chip.active {
+    background: #023047 !important; color: #FFB703 !important;
+    border-color: #023047 !important; text-decoration: none;
 }
 
-.forum-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-}
-
-.forum-subtitle {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin: 10px 0 0 0;
-}
-
-.forum-actions .btn {
-    padding: 12px 24px;
-    font-weight: 600;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.forum-filters {
-    margin-bottom: 30px;
-}
-
-.search-box {
-    margin-bottom: 20px;
-}
-
-.search-form .input-group {
-    display: flex;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.search-form .input-group input {
-    flex: 1;
-    font-size: 1.2rem !important;
-    padding: 1rem 1.5rem !important;
-    height: auto !important;
-    border-radius: 10px 0 0 10px !important;
-    border: 2px solid #023047 !important;
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.search-form .input-group input:focus {
-    outline: none !important;
-    border-color: #FFB703 !important;
-    box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.1) !important;
-}
-
-.search-form .input-group input::placeholder {
-    color: #6c757d !important;
-    font-size: 1.1rem !important;
-}
-
-.search-form .input-group .btn {
-    font-size: 1.2rem !important;
-    padding: 1rem 1.5rem !important;
-    border-radius: 0 10px 10px 0 !important;
-    margin-left: -2px !important;
-    background: #023047 !important;
-    color: #FFB703 !important;
-    border: 2px solid #023047 !important;
-}
-
-.search-form .input-group .btn:hover {
-    background: #012233 !important;
-    color: #FFB703 !important;
-}
-
-.category-filters {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.category-filter {
-    padding: 8px 16px;
-    border-radius: 20px;
-    text-decoration: none;
-    color: #6c757d;
-    background: #f8f9fa;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.category-filter:hover {
-    background: #e9ecef;
-    color: #495057;
-    text-decoration: none;
-}
-
-.category-filter.active {
-    background: #023047 !important;
-    color: #FFB703 !important;
-    border-color: #023047 !important;
-}
-
-.forum-posts {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.forum-post {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
+/* Post cards */
+.forum-posts { display: flex; flex-direction: column; gap: 14px; }
+.post-card {
+    background: #FFFFFF;
+    border-radius: 15px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+    border: 1.5px solid #e9ecef;
+    transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
 }
-
-.forum-post:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.forum-post.pinned {
-    border-left: 4px solid #FCD116;
-}
-
+.post-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+.post-card.pinned { border-left: 4px solid #FFB703; }
 .pin-badge {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #FCD116;
-    color: #333;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    position: absolute; top: 12px; right: 14px;
+    background: #FFB703; color: #023047;
+    font-size: 0.75rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 12px;
 }
-
-.post-header {
-    margin-bottom: 15px;
-}
-
-.post-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-}
-
-.post-title a {
-    color: #333;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.post-title a:hover {
-    color: #FFB703 !important;
-}
-
+.post-inner { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.post-main { flex: 1; }
+.post-title { font-size: 1.15rem; font-weight: 700; color: #023047; margin: 0 0 8px; }
+.post-title a { color: #023047; text-decoration: none; transition: color 0.2s; }
+.post-title a:hover { color: #FFB703; }
 .closed-badge {
-    background: #dc3545;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    margin-left: 10px;
+    font-size: 0.72rem; background: #fee2e2; color: #b91c1c;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+    font-weight: 600; vertical-align: middle;
 }
-
 .post-meta {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    font-size: 0.8rem;
-    color: #6c757d;
-}
-
-.post-meta span {
-    display: flex;
+    display: flex; flex-wrap: wrap; gap: 12px;
+    font-size: 0.82rem; color: #6b7280; margin-bottom: 10px;
     align-items: center;
-    gap: 5px;
 }
-
-.post-content {
-    color: #495057;
-    line-height: 1.6;
-    margin-bottom: 20px;
+.post-meta span { display: flex; align-items: center; gap: 4px; }
+.badge {
+    padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+    background: #FFB703; color: #023047;
+    display: inline-flex; align-items: center; gap: 4px;
 }
-
+.post-excerpt { font-size: 0.9rem; color: #4b5563; line-height: 1.6; margin: 0; }
 .post-stats {
-    display: flex;
-    gap: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #e9ecef;
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: 8px; font-size: 0.82rem; color: #6b7280; min-width: 80px;
 }
+.post-stats span { display: flex; align-items: center; gap: 5px; }
 
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #6c757d;
-    font-size: 0.8rem;
+/* Buttons */
+.btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1.5rem; border: none; border-radius: 8px;
+    text-decoration: none; font-weight: 600; font-size: 1rem;
+    transition: all 0.2s; cursor: pointer;
 }
+.btn.btn-primary { background: #023047; color: #FFB703; }
+.btn.btn-primary:hover { background: #012233; color: #FFB703; text-decoration: none; }
+.btn.btn-secondary { background: transparent; color: #023047; border: 2px solid #023047; }
+.btn.btn-secondary:hover { background: #023047; color: #FFB703; text-decoration: none; }
+.btn-sm { padding: 6px 14px; font-size: 0.85rem; }
 
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #6c757d;
-}
+/* Empty state */
+.no-lessons { text-align: center; padding: 4rem 2rem; }
+.no-lessons-content { max-width: 400px; margin: 0 auto; }
+.no-lessons-content i { font-size: 4rem; color: #FFB703; margin-bottom: 1rem; display: block; }
+.no-lessons-content h3 { color: #023047; margin-bottom: 0.5rem; }
+.no-lessons-content p  { color: #6c757d; margin-bottom: 1.5rem; }
 
-.empty-state-icon {
-    font-size: 4rem;
-    color: #dee2e6;
-    margin-bottom: 20px;
-}
+.filters-actions { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
 
-.empty-state h3 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-    color: #495057;
-}
-
-.pagination-container {
-    margin-top: 30px;
-}
-
-.pagination .page-link {
-    color: #023047 !important;
-    border-color: #023047 !important;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: #023047 !important;
-    border-color: #023047 !important;
-}
-
-@media (max-width: 768px) {
-    .forum-header {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-    }
-    
-    .forum-title {
-        font-size: 2rem;
-    }
-    
-    .post-meta {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .post-stats {
-        flex-wrap: wrap;
-    }
-}
-
-/* Sobrescribir todos los colores específicos */
-.forum-header, .forum-title, .forum-subtitle {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.forum-header {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.forum-title, .forum-subtitle {
-    color: #023047 !important;
-}
-
-/* Asegurar que todos los elementos usen la paleta correcta */
-.forum-container, .forum-header, .forum-filters, .forum-post, .post-content {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.forum-post {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.post-title a {
-    color: #023047 !important;
-}
-
-.post-title a:hover {
-    color: #FFB703 !important;
-}
-
-.post-meta, .post-content, .stat-item {
-    color: #023047 !important;
-}
-
-.category-filter {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-    border-color: #023047 !important;
-}
-
-.category-filter:hover {
-    background: #FFB703 !important;
-    color: #023047 !important;
-}
-
-.category-filter.active {
-    background: #023047 !important;
-    color: #FFB703 !important;
-    border-color: #023047 !important;
-}
-
-.pin-badge {
-    background: #FFB703 !important;
-    color: #023047 !important;
-}
-
-.closed-badge {
-    background: #FFB703 !important;
-    color: #023047 !important;
-}
-
-.empty-state {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.empty-state h3, .empty-state p {
-    color: #023047 !important;
-}
-
-.empty-state-icon {
-    color: #FFB703 !important;
-}
-
-.pagination .page-link {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-    border-color: #023047 !important;
-}
-
-.pagination .page-item.active .page-link {
-    background: #023047 !important;
-    color: #FFB703 !important;
-    border-color: #023047 !important;
-}
-
-.search-form .form-control {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-    border-color: #023047 !important;
-}
-
-.search-form .form-control:focus {
-    border-color: #FFB703 !important;
-}
-
-/* Sobrescribir colores morados */
-.forum-header {
-    background: #FFFFFF !important;
-    color: #023047 !important;
-}
-
-.category-filter.active {
-    background: #023047 !important;
-    color: #FFB703 !important;
-    border-color: #023047 !important;
-}
-
-.post-title a:hover {
-    color: #FFB703 !important;
-}
-
-.pagination .page-link {
-    color: #023047 !important;
-    border-color: #023047 !important;
-}
-
-.pagination .page-item.active .page-link {
-    background: #023047 !important;
-    color: #FFB703 !important;
-    border-color: #023047 !important;
-}
-
-.search-form .form-control:focus {
-    border-color: #FFB703 !important;
+@media (max-width: 640px) {
+    .post-inner { flex-direction: column; }
+    .post-stats { flex-direction: row; align-items: center; min-width: auto; }
+    .header-content h1 { font-size: 1.8rem; }
 }
 </style>
-{% endblock %} 
+{% endblock %}

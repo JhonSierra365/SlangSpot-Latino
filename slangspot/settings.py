@@ -580,7 +580,10 @@ if DEBUG:
     ]
 
 # ================================
-# CONFIGURACIÓN PARA OAUTH (PRODUCCIÓN)
+# CONFIGURACIÓN PARA OAUTH (PRODUCCIÓN/LOCAL)
 # ================================
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+else:
+    ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'

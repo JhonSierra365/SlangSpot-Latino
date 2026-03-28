@@ -1,772 +1,341 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Blog - SlangSpot{% endblock %}
-
-{% block extra_css %}
-<style>
-    .blog-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-    
-    .hero-section {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        padding: 60px 0;
-    }
-    
-    .hero-content {
-        text-align: center;
-    }
-    
-    .hero-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1.2;
-        margin-bottom: 1rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        opacity: 0.9;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 2rem;
-        white-space: normal;
-    }
-    
-    .search-container {
-        max-width: 400px;
-        margin: 0 auto 2rem auto;
-        position: relative;
-    }
-    
-    .search-bar {
-        width: 100%;
-        padding: 12px 20px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 25px;
-        color: white;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
-    
-    .search-bar:focus {
-        outline: none;
-        border-color: rgba(255, 255, 255, 0.4);
-        background: rgba(255, 255, 255, 0.2);
-    }
-    
-    .search-bar::placeholder {
-        color: rgba(255, 255, 255, 0.8);
-    }
-    
-    .search-icon {
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 1rem;
-    }
-    
-    .filters-container {
-        margin-bottom: 2rem;
-    }
-    
-    .filters-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
-        margin-bottom: 0.8rem;
-        text-align: center;
-    }
-    
-    .filter-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-        max-width: 700px;
-        margin: 0 auto;
-    }
-    
-    .filter-btn {
-        padding: 8px 16px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        white-space: nowrap;
-    }
-    
-    .filter-btn:hover, .filter-btn.active {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(255, 255, 255, 0.4);
-        color: white;
-        text-decoration: none;
-    }
-    
-    .create-section {
-        text-align: center;
-        margin-top: 1rem;
-    }
-    
-    .create-btn {
-        background: #023047 !important;
-        color: #FFB703 !important;
-        border: none;
-        font-weight: 600;
-        transition: all 0.2s;
-        padding: 12px 24px;
-        border-radius: 25px;
-        font-size: 1rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .create-btn:hover {
-        background: #012233 !important;
-        color: #FFB703 !important;
-        text-decoration: none;
-    }
-    
-    .blog-section {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        padding: 60px 0;
-    }
-    
-    .section-title {
-        font-size: 2rem;
-        font-weight: 600;
-        text-align: center;
-        margin-bottom: 2.5rem;
-        color: #023047 !important;
-    }
-    
-    .posts-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
-    }
-    
-    .post-card {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        position: relative;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #E6A500;
-    }
-    
-    .post-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-    }
-    
-    .post-image {
-        height: 180px;
-        background: #e2e8f0;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .post-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-    
-    .post-card:hover .post-image img {
-        transform: scale(1.03);
-    }
-    
-    .category-badge {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        background: rgba(255, 255, 255, 0.95);
-        color: #2d3748;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .category-badge.slang { background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; }
-    .category-badge.culture { background: #FFB703 !important; color: #023047 !important; }
-    .category-badge.tips { background: linear-gradient(45deg, #00b894, #00cec9); color: white; }
-    .category-badge.stories { background: linear-gradient(45deg, #fdcb6e, #e17055); color: white; }
-    .category-badge.interviews { background: #FFB703 !important; color: #023047 !important; }
-    
-    .post-content {
-        padding: 20px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .post-title {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 10px;
-        line-height: 1.4;
-        transition: color 0.3s ease;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .post-card:hover .post-title {
-        color: #FFB703 !important;
-    }
-    
-    .post-title a {
-        color: inherit;
-        text-decoration: none;
-    }
-    
-    .post-excerpt {
-        color: #718096;
-        line-height: 1.5;
-        margin-bottom: 16px;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        flex: 1;
-        font-size: 1rem;
-    }
-    
-    .post-meta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 0.8rem;
-        color: #a0aec0;
-        margin-top: auto;
-    }
-    
-    .author-info {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .author-avatar {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: #FFB703 !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #023047 !important;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
-    
-    .stats {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .stat {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-    }
-    
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        margin-top: 2.5rem;
-    }
-    
-    .page-btn {
-        padding: 10px 16px;
-        background: white;
-        color: #4a5568;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    
-    .page-btn:hover {
-        background: #f7fafc;
-        border-color: #cbd5e0;
-        color: #4a5568;
-        text-decoration: none;
-    }
-    
-    .page-info {
-        padding: 10px 16px;
-        background: white;
-        color: #4a5568;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        max-width: 400px;
-        margin: 0 auto;
-    }
-    
-    .empty-icon {
-        width: 60px;
-        height: 60px;
-        margin: 0 auto 20px;
-        background: #FFB703 !important;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #023047 !important;
-        font-size: 1.5rem;
-    }
-    
-    .empty-title {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 10px;
-    }
-    
-    .empty-text {
-        color: #718096;
-        line-height: 1.5;
-        margin-bottom: 24px;
-        font-size: 0.9rem;
-    }
-    
-    @media (max-width: 768px) {
-        .hero-title {
-            font-size: 2rem;
-        }
-        
-        .hero-subtitle {
-            font-size: 1rem;
-        }
-        
-        .filter-buttons {
-            gap: 8px;
-        }
-        
-        .filter-btn {
-            padding: 6px 12px;
-            font-size: 0.85rem;
-        }
-        
-        .posts-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        .section-title {
-            font-size: 1.6rem;
-        }
-    }
-
-    /* Sobrescribir todos los colores específicos */
-    .blog-header, .hero-title, .hero-subtitle, .section-title {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-    }
-
-    .hero-title, .hero-subtitle, .section-title {
-        color: #023047 !important;
-    }
-
-    /* Asegurar que todos los elementos usen la paleta correcta */
-    .blog-container, .blog-header, .filters-section, .post-card, .post-content {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-    }
-
-    .blog-card, .blog-meta, .blog-footer, .badge, .no-blogs-content {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        border: none !important;
-    }
-
-    .badge {
-        background: #FFB703 !important;
-        color: #023047 !important;
-        font-weight: 600;
-    }
-
-    .category-badge.slang, .category-badge.culture, .category-badge.tips, 
-    .category-badge.stories, .category-badge.interviews {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    .blog-overlay {
-        background: rgba(2, 48, 71, 0.08) !important;
-    }
-
-    .post-title, .post-excerpt, .post-meta {
-        color: #023047 !important;
-    }
-
-    .post-card {
-        background: #FFFFFF !important;
-    }
-
-    .post-content {
-        background: #FFFFFF !important;
-    }
-
-    .blog-header, .filters-section {
-        background: #FFFFFF !important;
-    }
-
-    .empty-state {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-    }
-
-    .empty-title, .empty-text {
-        color: #023047 !important;
-    }
-
-    .empty-icon {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    .page-btn, .page-info {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        border-color: #023047 !important;
-    }
-
-    .author-avatar {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    /* Sobrescribir todos los colores blancos y transparentes */
-    .search-bar {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        border-color: #023047 !important;
-    }
-
-    .search-bar:focus {
-        border-color: #FFB703 !important;
-        background: #FFFFFF !important;
-    }
-
-    .search-bar::placeholder {
-        color: #023047 !important;
-    }
-
-    .search-icon {
-        color: #023047 !important;
-    }
-
-    .filters-title {
-        color: #023047 !important;
-    }
-
-    .filter-btn {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        border-color: #023047 !important;
-    }
-
-    .filter-btn:hover, .filter-btn.active {
-        background: #FFB703 !important;
-        color: #023047 !important;
-        border-color: #FFB703 !important;
-    }
-
-    .category-badge {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    .post-content {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-    }
-
-    .post-title {
-        color: #023047 !important;
-    }
-
-    .post-title a {
-        color: #023047 !important;
-    }
-
-    .post-title a:hover {
-        color: #FFB703 !important;
-    }
-
-    .post-excerpt {
-        color: #023047 !important;
-    }
-
-    .post-meta {
-        color: #023047 !important;
-    }
-
-    .author-avatar {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    .stat {
-        color: #023047 !important;
-    }
-
-    .page-btn, .page-info {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-        border-color: #023047 !important;
-    }
-
-    .page-btn:hover {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    .empty-state {
-        background: #FFFFFF !important;
-        color: #023047 !important;
-    }
-
-    .empty-title, .empty-text {
-        color: #023047 !important;
-    }
-
-    .empty-icon {
-        color: #FFB703 !important;
-    }
-
-    /* Sobrescribir colores morados */
-    .category-badge.culture, .category-badge.interviews {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    .post-title a:hover {
-        color: #FFB703 !important;
-    }
-
-    .empty-icon {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-
-    .page-btn:hover {
-        background: #FFB703 !important;
-        color: #023047 !important;
-    }
-</style>
-{% endblock %}
+{% block title %}Blog - SlangSpot Latino{% endblock %}
 
 {% block content %}
 <div class="blog-container">
-<!-- Hero Section -->
-<section class="hero-section">
-    <div>
-        <div class="hero-content">
-            <h1 class="hero-title">Blog SlangSpot</h1>
-            <p class="hero-subtitle">
-                Descubre las mejores expresiones, tips de aprendizaje y cultura latina
-            </p>
-            
-            <!-- Search Bar -->
-            <div class="search-container">
-                <input type="text" 
-                       placeholder="Buscar artículos..." 
-                       class="search-bar">
-                <div class="search-icon">🔍</div>
-            </div>
-            
-            <!-- Filter Buttons -->
-            <div class="filters-container">
-                <div class="filters-title">Filtrar por categoría:</div>
-                <div class="filter-buttons">
-                    <a href="{% url 'core:blog_list' %}" 
-                       class="filter-btn {% if not request.GET.category %}active{% endif %}">
-                        Todos
-                    </a>
-                    {% for category_code, category_name in categories %}
-                    <a href="?category={{ category_code }}" 
-                       class="filter-btn {% if request.GET.category == category_code %}active{% endif %}">
-                        {{ category_name }}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <!-- Create Button -->
-            {% if user.is_authenticated %}
-            <div class="create-section">
-                <a href="{% url 'core:blog_create' %}" class="create-btn">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Crear Artículo
-                </a>
-            </div>
+
+    <!-- Header Section (matches lessons-header style) -->
+    <div class="lessons-header">
+        <div class="header-content">
+            <h1>Blog SlangSpot</h1>
+            <p>Descubre las mejores expresiones, tips de aprendizaje y cultura latina</p>
+            {% if user.is_staff %}
+            <a href="{% url 'core:blog_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Artículo
+            </a>
             {% endif %}
         </div>
     </div>
-</section>
 
-<!-- Blog Posts Section -->
-<section class="blog-section">
-    <div>
-        {% if posts %}
-        <h2 class="section-title">Artículos Recientes</h2>
-        <div class="posts-grid">
-            {% for post in posts %}
-            <article class="post-card">
-                <!-- Post Image -->
-                <div class="post-image">
-                    <img src="{{ post.get_featured_image_url }}" 
-                         alt="{{ post.title }}">
-                    <div class="category-badge {{ post.category }}">
-                        {{ post.get_category_display }}
-                    </div>
-                </div>
-                
-                <!-- Post Content -->
-                <div class="post-content">
-                    <h3 class="post-title">
-                        <a href="{{ post.get_absolute_url }}">
-                            {{ post.title }}
-                        </a>
-                    </h3>
-                    
-                    {% if post.excerpt %}
-                    <p class="post-excerpt">{{ post.excerpt }}</p>
-                    {% endif %}
-                    
-                    <div class="post-meta">
-                        <div class="author-info">
-                            <div class="author-avatar">
-                                {{ post.author.username|first|upper }}
-                            </div>
-                            <span>{{ post.author.username }}</span>
-                        </div>
-                        
-                        <div class="stats">
-                            <div class="stat">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                {{ post.views }}
-                            </div>
-                            <div class="stat">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                {{ post.created_at|date:"d M" }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-            {% endfor %}
-        </div>
-
-        <!-- Pagination -->
-        {% if is_paginated %}
-        <div class="pagination">
-            {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" 
-               class="page-btn">
-                ← Anterior
-            </a>
-            {% endif %}
-            
-            <span class="page-info">
-                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-            </span>
-            
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" 
-               class="page-btn">
-                Siguiente →
-            </a>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% else %}
-        <!-- Empty State -->
-        <div class="empty-state">
-            <div class="empty-icon">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
+    <!-- Filters Section (matches lessons filters-section style) -->
+    <div class="filters-section">
+        <div class="filters-form">
+            <div class="category-chips">
+                <a href="{% url 'core:blog_list' %}"
+                   class="chip {% if not request.GET.category %}active{% endif %}">Todos</a>
+                {% for cat_code, cat_name in categories %}
+                <a href="?category={{ cat_code }}"
+                   class="chip {% if request.GET.category == cat_code %}active{% endif %}">{{ cat_name }}</a>
+                {% endfor %}
             </div>
-            <h3 class="empty-title">No hay artículos aún</h3>
-            <p class="empty-text">
-                {% if user.is_authenticated %}
-                Sé el primero en crear un artículo para el blog y comparte tus conocimientos sobre slang latino.
+        </div>
+    </div>
+
+    <!-- Posts Grid -->
+    <div class="lessons-grid">
+        {% for post in posts %}
+        <div class="lesson-card">
+            <div class="lesson-image">
+                <img src="{{ post.get_featured_image_url }}" alt="{{ post.title }}"
+                     onerror="this.src='{% static "core/images/default-cover.jpg" %}'">
+                <div class="category-badge {{ post.category }}">
+                    {{ post.get_category_display }}
+                </div>
+                <div class="lesson-overlay">
+                    <a href="{{ post.get_absolute_url }}" class="btn btn-primary">Leer Artículo</a>
+                </div>
+            </div>
+            <div class="lesson-content">
+                <h3>{{ post.title }}</h3>
+                {% if post.excerpt %}
+                <p class="lesson-description">{{ post.excerpt|truncatewords:20 }}</p>
                 {% else %}
-                Inicia sesión para crear el primer artículo del blog y compartir tus conocimientos.
+                <p class="lesson-description">{{ post.content|striptags|truncatewords:20 }}</p>
                 {% endif %}
-            </p>
-            {% if user.is_authenticated %}
-            <a href="{% url 'core:blog_create' %}" class="create-btn">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Crear Primer Artículo
-            </a>
-            {% else %}
-            <a href="{% url 'account_login' %}" class="create-btn">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                </svg>
-                Iniciar Sesión
-            </a>
-            {% endif %}
+                <div class="lesson-meta">
+                    <span class="badge">
+                        <i class="fas fa-user"></i> {{ post.author.username }}
+                    </span>
+                    <span class="badge">
+                        <i class="fas fa-eye"></i> {{ post.views }} vistas
+                    </span>
+                </div>
+                <div class="lesson-footer">
+                    <span class="lesson-date">
+                        <i class="fas fa-calendar"></i> {{ post.created_at|date:"d/m/Y" }}
+                    </span>
+                    {% if user.is_staff %}
+                    <div class="admin-actions">
+                        <a href="{% url 'core:blog_edit' post.pk %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'core:blog_delete' post.pk %}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('¿Eliminar este artículo?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
+        {% empty %}
+        <div class="no-lessons">
+            <div class="no-lessons-content">
+                <i class="fas fa-newspaper"></i>
+                <h3>No hay artículos disponibles</h3>
+                <p>Aún no hay artículos publicados en el blog.</p>
+                {% if user.is_staff %}
+                <a href="{% url 'core:blog_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear Primer Artículo
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="filters-actions" style="margin-top: 2rem;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+           class="btn btn-secondary">← Anterior</a>
+        {% endif %}
+        <span class="btn btn-secondary" style="cursor:default;">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+           class="btn btn-secondary">Siguiente →</a>
         {% endif %}
     </div>
-</section>
+    {% endif %}
+
 </div>
-{% endblock %} 
+
+<style>
+.blog-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Header — identical to lessons */
+.lessons-header {
+    background: #FFFFFF !important;
+    color: #023047 !important;
+    padding: 3rem 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+.header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #023047 !important;
+    margin-bottom: 0.5rem;
+}
+.header-content p {
+    font-size: 1.1rem;
+    color: #023047 !important;
+    opacity: 0.85;
+    margin-bottom: 1.5rem;
+}
+
+/* Filters section */
+.filters-section {
+    background: #FFFFFF;
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+    margin-bottom: 2rem;
+}
+.category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+.chip {
+    padding: 8px 18px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #023047;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    transition: all 0.2s;
+}
+.chip:hover, .chip.active {
+    background: #023047 !important;
+    color: #FFB703 !important;
+    border-color: #023047 !important;
+    text-decoration: none;
+}
+
+/* Reuse lessons-grid, lesson-card, etc. */
+.lessons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2rem;
+}
+.lesson-card {
+    background: #FFFFFF !important;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    color: #023047 !important;
+}
+.lesson-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.lesson-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+.lesson-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.lesson-card:hover .lesson-image img { transform: scale(1.05); }
+
+.category-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: #FFB703 !important;
+    color: #023047 !important;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.lesson-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(2,48,71,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.lesson-card:hover .lesson-overlay { opacity: 1; }
+
+.lesson-content {
+    padding: 1.5rem;
+    background: #FFFFFF !important;
+}
+.lesson-content h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #023047 !important;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.lesson-description {
+    color: #4b5563 !important;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.lesson-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #FFB703 !important;
+    color: #023047 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.lesson-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+.lesson-date {
+    color: #6c757d !important;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.admin-actions { display: flex; gap: 0.5rem; }
+
+/* Buttons — same as lessons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.btn.btn-primary {
+    background: #023047 !important;
+    color: #FFB703 !important;
+}
+.btn.btn-primary:hover { background: #012233 !important; color: #FFB703 !important; }
+.btn.btn-secondary {
+    background: transparent !important;
+    color: #023047 !important;
+    border: 2px solid #023047 !important;
+}
+.btn.btn-secondary:hover { background: #023047 !important; color: #FFB703 !important; }
+.btn-warning { background: #ffc107; color: black; }
+.btn-danger  { background: #dc3545; color: white; }
+.btn-sm { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+
+/* Empty state */
+.no-lessons { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; }
+.no-lessons-content { max-width: 400px; margin: 0 auto; }
+.no-lessons-content i { font-size: 4rem; color: #FFB703; margin-bottom: 1rem; display: block; }
+.no-lessons-content h3 { color: #023047 !important; margin-bottom: 0.5rem; }
+.no-lessons-content p  { color: #6c757d !important; margin-bottom: 1.5rem; }
+
+.filters-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .lessons-grid { grid-template-columns: 1fr; }
+    .header-content h1 { font-size: 2rem; }
+}
+</style>
+{% endblock %}

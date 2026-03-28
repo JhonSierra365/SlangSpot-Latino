@@ -4,6 +4,7 @@
 {% block title %}{{ post.title }} - Blog SlangSpot{% endblock %}
 
 {% block extra_css %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
 <style>
     .hero-section {
@@ -602,12 +603,31 @@
             </div>
         </div>
     </div>
-</section>
-
-<!-- Content Section -->
+</section>        <!-- Content Section -->
 <section class="content-section">
     <div class="container mx-auto px-4">
         <div class="content-container">
+            <!-- Admin Action Bar (staff only) -->
+            {% if user.is_staff %}
+            <div style="display: flex; gap: 10px; justify-content: flex-end; padding: 12px 24px; background: #f7fafc; border-bottom: 1px solid #e2e8f0;">
+                <a href="{% url 'core:blog_edit' post.pk %}"
+                   style="display: inline-flex; align-items: center; gap: 6px; background: #023047; color: #FFB703; padding: 7px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; text-decoration: none;">
+                    <svg style="width:15px;height:15px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Editar artículo
+                </a>
+                <a href="{% url 'core:blog_delete' post.pk %}"
+                   style="display: inline-flex; align-items: center; gap: 6px; background: #dc2626; color: #fff; padding: 7px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; text-decoration: none;"
+                   onclick="return confirm('¿Seguro que quieres eliminar este artículo? Esta acción no se puede deshacer.')">
+                    <svg style="width:15px;height:15px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Eliminar
+                </a>
+            </div>
+            {% endif %}
+
             <!-- Featured Image -->
             {% if post.featured_image %}
             <div class="featured-image">
@@ -623,8 +643,10 @@
                 </div>
                 {% endif %}
                 
-                <div class="content-text">
-                    {{ post.content|linebreaks }}
+                <div class="content-text ql-snow">
+                    <div class="ql-editor" style="padding: 0; font-size: 1.1rem; line-height: 1.7; color: #2d3748;">
+                        {{ post.content|safe }}
+                    </div>
                 </div>
             </div>
             

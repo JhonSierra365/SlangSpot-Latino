@@ -83,7 +83,11 @@ class BlogUpdateView(UserPassesTestMixin, UpdateView):
     login_url = reverse_lazy('account_login')
 
     def get_queryset(self):
-        return BlogPost.objects.filter(author=self.request.user)
+        # Any staff member can edit any blog post
+        return BlogPost.objects.all()
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
     def form_valid(self, form):
         messages.success(self.request, 'Artículo actualizado exitosamente.')
@@ -99,7 +103,8 @@ class BlogDeleteView(UserPassesTestMixin, DeleteView):
     login_url = reverse_lazy('account_login')
 
     def get_queryset(self):
-        return BlogPost.objects.filter(author=self.request.user)
+        # Any staff member can delete any blog post
+        return BlogPost.objects.all()
 
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Artículo eliminado exitosamente.')
