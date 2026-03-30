@@ -218,6 +218,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Solo FileSystemFinder con ruta explícita — evita el problema de AppDirectoriesFinder en Railway
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
 # Configuración condicional de STATICFILES_STORAGE
@@ -226,7 +227,7 @@ if DEBUG:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
     # En producción, usar storage de WhiteNoise para versionado y compresión
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configuración de compresión de archivos estáticos (requiere django-compressor)
 COMPRESS_ENABLED = False  # Desactivado temporalmente
