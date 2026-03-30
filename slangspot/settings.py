@@ -209,13 +209,8 @@ USE_TZ = True
 
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'core' / 'static',
-]
-
+STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# Solo FileSystemFinder con ruta explícita — evita el problema de AppDirectoriesFinder en Railway
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
