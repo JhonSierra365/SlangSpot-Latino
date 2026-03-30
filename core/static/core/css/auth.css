@@ -107,6 +107,7 @@ body {
     margin-bottom: 12px;
     font-family: 'Inter', sans-serif;
     letter-spacing: -0.025em;
+    color: #ffffff;
 }
 
 .auth-subtitle {
@@ -261,6 +262,56 @@ body {
 .btn-icon {
     width: 20px;
     height: 20px;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 20px;
+    background: #ffffff;
+    color: #023047;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+.social-btn:hover {
+    background: #f8fafc;
+    border-color: #023047;
+    box-shadow: 0 4px 16px rgba(2,48,71,0.15);
+    transform: translateY(-1px);
+}
+.social-btn img {
+    width: 22px;
+    height: 22px;
+}
+
+.social-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: #a0aec0;
+    font-size: 0.9rem;
+}
+.social-divider::before,
+.social-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+.social-divider span {
+    padding: 0 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
 }
 
 .auth-footer {
