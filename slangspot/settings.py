@@ -61,11 +61,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sites',
     'cloudinary_storage',
     'cloudinary',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',  # Necesario para allauth
-    'compressor',  # Para compresión de archivos estáticos
+    'compressor',
     'core',
     'allauth',
     'allauth.account',
@@ -205,15 +205,11 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
-STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+STATICFILES_DIRS = [
+    BASE_DIR / 'core' / 'static',
 ]
 
 # Configuración condicional de STATICFILES_STORAGE
