@@ -213,12 +213,7 @@ STATICFILES_DIRS = [
 ]
 
 # Configuración condicional de STATICFILES_STORAGE
-if DEBUG:
-    # En desarrollo, usar el almacenamiento por defecto (sin manifest ni cache)
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-else:
-    # En producción, usar storage de WhiteNoise para versionado y compresión
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# En Django 5.1+, usar STORAGES['staticfiles'] en vez de STATICFILES_STORAGE (configurado abajo)
 
 # Configuración de compresión de archivos estáticos (requiere django-compressor)
 COMPRESS_ENABLED = False  # Desactivado temporalmente
@@ -232,18 +227,35 @@ COMPRESS_JS_FILTERS = [
 
 # Configuración de archivos de medios
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 # Configuración de Cloudinary para Media Uploads en Producción
 import cloudinary
-import os
+import cloudinary.uploader
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
 }
 
+cloudinary.config(
+    cloud_name=config('CLOUDINARY_CLOUD_NAME', default=''),
+    api_key=config('CLOUDINARY_API_KEY', default=''),
+    api_secret=config('CLOUDINARY_API_SECRET', default=''),
+    secure=True
+)
+
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage" if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # Configuración de archivos subidos
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
