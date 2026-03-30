@@ -6,77 +6,62 @@
 {% block head_title %}{% trans "Registro" %}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/auth.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h3>{% trans "Crear Cuenta" %}</h3>
-        </div>
-        <div class="auth-body">
-            {% get_providers as socialaccount_providers %}
-            
-            {% if socialaccount_providers %}
-            <div class="socialaccount_ballot">
-                <div class="socialaccount_providers">
-                    <a href="{% provider_login_url 'google' %}" class="social-btn">
-                        <img src="{% static 'img/google.svg' %}" alt="Google">
-                        {% trans "Continuar con Google" %}
-                    </a>
-                </div>
-                <div class="social-divider">
-                    <span>{% trans 'o' %}</span>
-                </div>
+<div class="auth-hero-section">
+    <div class="auth-container">
+        <div class="auth-content">
+            <div class="auth-header">
+                <h3 class="auth-title">{% trans "Crear Cuenta" %}</h3>
             </div>
-            {% endif %}
-
-            <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-                {% csrf_token %}
-                {% if form.errors %}
-                <div class="alert alert-danger">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <div>{{ error }}</div>
+            <div class="auth-form-container">
+                {% get_providers as socialaccount_providers %}
+                {% if socialaccount_providers %}
+                <a href="{% provider_login_url 'google' %}" class="social-btn">
+                    <img src="{% static 'img/google.svg' %}" alt="Google">
+                    {% trans "Continuar con Google" %}
+                </a>
+                <div class="social-divider"><span>{% trans 'o' %}</span></div>
+                {% endif %}
+                <form class="auth-form" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                    <div class="auth-error">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
                         {% endfor %}
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <div class="form-group">
-                    <label for="id_username">{% trans "Nombre de usuario" %}</label>
-                    <input type="text" name="username" placeholder="{% trans "Ingresa tu nombre de usuario" %}" autocomplete="username" minlength="1" maxlength="150" required id="id_username">
-                </div>
-
-                <div class="form-group">
-                    <label for="id_email">{% trans "Correo electrónico" %}</label>
-                    <input type="email" name="email" placeholder="{% trans "Ingresa tu correo electrónico" %}" autocomplete="email" required id="id_email">
-                </div>
-
-                <div class="form-group">
-                    <label for="id_password1">{% trans "Contraseña" %}</label>
-                    <input type="password" name="password1" placeholder="{% trans "Ingresa tu contraseña" %}" autocomplete="new-password" required id="id_password1">
-                </div>
-
-                <div class="form-group">
-                    <label for="id_password2">{% trans "Confirmar contraseña" %}</label>
-                    <input type="password" name="password2" placeholder="{% trans "Confirma tu contraseña" %}" autocomplete="new-password" required id="id_password2">
-                </div>
-
-                {% if redirect_field_value %}
-                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-                {% endif %}
-
-                <button type="submit" class="btn-auth">{% trans "Crear Cuenta" %}</button>
-            </form>
-
-            <div class="auth-footer">
-                <div>
-                    {% trans "¿Ya tienes cuenta?" %} <a href="{% url 'account_login' %}">{% trans "Inicia sesión" %}</a>
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label class="form-label" for="id_username">{% trans "Nombre de usuario" %}</label>
+                        <input type="text" name="username" placeholder="{% trans 'Ingresa tu nombre de usuario' %}" autocomplete="username" minlength="1" maxlength="150" required id="id_username">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="id_email">{% trans "Correo electrónico" %}</label>
+                        <input type="email" name="email" placeholder="{% trans 'Ingresa tu correo electrónico' %}" autocomplete="email" required id="id_email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="id_password1">{% trans "Contraseña" %}</label>
+                        <input type="password" name="password1" placeholder="{% trans 'Ingresa tu contraseña' %}" autocomplete="new-password" required id="id_password1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="id_password2">{% trans "Confirmar contraseña" %}</label>
+                        <input type="password" name="password2" placeholder="{% trans 'Confirma tu contraseña' %}" autocomplete="new-password" required id="id_password2">
+                    </div>
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+                    <button type="submit" class="auth-submit-btn">{% trans "Crear Cuenta" %}</button>
+                </form>
+                <div class="auth-footer">
+                    <span class="auth-redirect">{% trans "¿Ya tienes cuenta?" %} <a href="{% url 'account_login' %}" class="auth-link">{% trans "Inicia sesión" %}</a></span>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
