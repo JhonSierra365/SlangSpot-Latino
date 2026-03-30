@@ -1,21 +1,32 @@
 {% extends "core/base.html" %}
 {% load i18n %}
+{% load static %}
+
+{% block head_title %}{% trans "Confirmar acceso" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/auth.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="auth-page">
-    <div class="auth-card">
-        <h2 class="auth-title">{% trans "Social Network Login" %}</h2>
-        
-        {% if process == "connect" %}
-            <p>{% blocktrans with provider.name as provider %}Usted está a punto de conectar su cuenta existente con su cuenta de {{ provider }}.{% endblocktrans %}</p>
-        {% else %}
-            <p>{% blocktrans with provider.name as provider %}Se dispone a iniciar sesión en SlangSpot Latino usando su cuenta de {{ provider }}.{% endblocktrans %}</p>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit" class="auth-button">{% trans "Continuar" %}</button>
-        </form>
+<div class="auth-hero-section">
+    <div class="auth-container">
+        <div class="auth-content">
+            <div class="auth-header">
+                <h3 class="auth-title">{% trans "Confirmar acceso" %}</h3>
+            </div>
+            <div class="auth-form-container">
+                {% if process == "connect" %}
+                    <p style="text-align:center; color: #4a5568; margin-bottom: 24px;">{% blocktrans with provider.name as provider %}Estás a punto de conectar tu cuenta con {{ provider }}.{% endblocktrans %}</p>
+                {% else %}
+                    <p style="text-align:center; color: #4a5568; margin-bottom: 24px;">{% blocktrans with provider.name as provider %}Vas a iniciar sesión en SlangSpot Latino usando tu cuenta de {{ provider }}.{% endblocktrans %}</p>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="auth-submit-btn">{% trans "Continuar" %}</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
