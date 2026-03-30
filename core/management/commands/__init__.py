@@ -1,1 +1,1 @@
-# Comandos de gestión 
+# Initialize commands module

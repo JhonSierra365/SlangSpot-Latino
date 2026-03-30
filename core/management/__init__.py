@@ -1,1 +1,1 @@
-# Comandos de gestión personalizados 
+# Initialize management module
