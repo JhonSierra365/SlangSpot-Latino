@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 from ..models import BlogPost, BlogComment
+from ..forms import BlogPostForm
 
 class BlogListView(ListView):
     model = BlogPost
@@ -64,7 +65,7 @@ class BlogCreateView(UserPassesTestMixin, CreateView):
 
     model = BlogPost
     template_name = 'core/blog/blog_form.html'
-    fields = ['title', 'content', 'excerpt', 'category', 'featured_image', 'is_published']
+    form_class = BlogPostForm
     success_url = reverse_lazy('core:blog_list')
     login_url = reverse_lazy('account_login')
 
@@ -79,7 +80,7 @@ class BlogUpdateView(UserPassesTestMixin, UpdateView):
 
     model = BlogPost
     template_name = 'core/blog/blog_form.html'
-    fields = ['title', 'content', 'excerpt', 'category', 'featured_image', 'is_published']
+    form_class = BlogPostForm
     login_url = reverse_lazy('account_login')
 
     def get_queryset(self):

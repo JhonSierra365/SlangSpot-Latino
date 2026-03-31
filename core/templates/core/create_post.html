@@ -205,4 +205,17 @@
 }
 .alert-danger i { display: none; }
 </style>
+
+<!-- TinyMCE CDN inyección -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    selector: '.rich-text-editor',
+    menubar: false,
+    plugins: 'advlist autolink lists link charmap preview anchor insertdatetime media table code help wordcount',
+    toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
+    height: 400
+  });
+</script>
 {% endblock %} 
