@@ -75,7 +75,7 @@ class ForumPostForm(forms.ModelForm):
         }
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título de la publicación'}),
-            'content': forms.Textarea(attrs={'class': 'form-control rich-text-editor', 'placeholder': 'Contenido de la publicación', 'rows': 10}),
+            'content': forms.Textarea(attrs={'class': 'form-control rich-text-field', 'placeholder': 'Contenido de la publicación', 'rows': 10}),
             'category': forms.Select(attrs={'class': 'form-control'}),
         }
 
@@ -102,7 +102,7 @@ class LessonForm(forms.ModelForm):
         fields = ['title', 'content', 'level', 'category', 'country', 'video_url', 'cultural_notes', 'cover_image']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control rich-text-editor', 'rows': 10}),
+            'content': forms.Textarea(attrs={'class': 'form-control rich-text-field', 'rows': 10}),
             'level': forms.Select(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'country': forms.Select(attrs={'class': 'form-control'}),
@@ -110,7 +110,7 @@ class LessonForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Ejemplo: https://www.youtube.com/watch?v=dQw4w9WgXcQ'
             }),
-            'cultural_notes': forms.Textarea(attrs={'class': 'form-control rich-text-editor', 'rows': 5}),
+            'cultural_notes': forms.Textarea(attrs={'class': 'form-control rich-text-field', 'rows': 5}),
             'cover_image': forms.FileInput(attrs={'class': 'form-control'}),
         }
         labels = {
@@ -181,7 +181,7 @@ class BlogPostForm(forms.ModelForm):
         fields = ['title', 'content', 'excerpt', 'category', 'featured_image', 'is_published']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control rich-text-editor', 'rows': 10}),
+            'content': forms.Textarea(attrs={'class': 'form-control rich-text-field', 'rows': 10}),
             'excerpt': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Resumen breve del artículo...'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'featured_image': forms.FileInput(attrs={'class': 'form-control'}),
