@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from urllib.parse import urlparse, parse_qs
 import re
 import bleach
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 # Create your models here.
 
@@ -68,6 +69,7 @@ class Expression(BaseModel):
     example = models.TextField(null=True, blank=True)
     audio = models.FileField(
         upload_to='expression_audio/',
+        storage=RawMediaCloudinaryStorage(),
         null=True,
         blank=True,
         validators=[validate_file_size, validate_audio_extension]
