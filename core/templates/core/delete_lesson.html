@@ -4,54 +4,106 @@
 {% block content %}
 <div class="delete-lesson-container">
     <div class="confirmation-box">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
         <h1>Eliminar Lección</h1>
-        <p class="warning-text">¿Estás seguro de que deseas eliminar la lección "{{ lesson.title }}"?</p>
+        <p class="warning-text">¿Estás seguro de que deseas eliminar la lección <strong>"{{ lesson.title }}"</strong>?</p>
         <p class="warning-note">Esta acción no se puede deshacer.</p>
 
-        <form method="post">
+        <form method="post" class="delete-form">
             {% csrf_token %}
             <div class="form-actions">
-                <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
                 <a href="{% url 'core:lesson_detail' lesson.id %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
             </div>
         </form>
     </div>
 </div>
 
 <style>
-.delete-lesson-container, .delete-lesson-header, .delete-lesson-content {
-    background: #FEFAE0 !important;
-    color: #023047 !important;
+.delete-lesson-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem;
+    background-color: transparent;
 }
 
-.btn.btn-primary {
-    background: #023047;
-    color: #FFB703;
-    border: none;
-    font-weight: 600;
-    transition: all 0.2s;
+.confirmation-box {
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    padding: 3rem;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    border-top: 5px solid #dc3545;
 }
 
-.btn.btn-primary:hover {
-    background: #012233;
-    color: #FFB703;
+.warning-icon {
+    font-size: 3rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
 }
 
-.btn.btn-secondary {
-    background: transparent;
+.confirmation-box h1 {
     color: #023047;
-    border: 2px solid #023047;
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+}
+
+.warning-text {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.warning-note {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 10px 24px;
     font-weight: 600;
+    border-radius: 6px;
     transition: all 0.2s;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 1rem;
+    border: none;
+    display: inline-block;
 }
 
-.btn.btn-secondary:hover {
-    background: #023047;
-    color: #FFB703;
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
 }
 
-h1, h2, h3, h4, h5, h6, p {
-    color: #023047 !important;
+.btn-secondary:hover {
+    background-color: #5a6268;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    color: white;
+    transform: translateY(-2px);
 }
 </style>
 {% endblock %} 
