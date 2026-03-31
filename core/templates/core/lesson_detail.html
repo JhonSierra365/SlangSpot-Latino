@@ -425,7 +425,8 @@ h1, h2, h3, h4, h5, h6, p, .lesson-meta, .lesson-footer {
 .video-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    padding-bottom: 56.25%; /* Relación de aspecto 16:9 estricta */
+    height: 0;
     overflow: hidden;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
