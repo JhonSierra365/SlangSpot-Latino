@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Sentry configuration - Solo en producción
-if not DEBUG:
+if False: # not DEBUG:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 
