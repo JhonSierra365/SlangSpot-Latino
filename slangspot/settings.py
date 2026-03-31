@@ -208,9 +208,9 @@ USE_TZ = True
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'core' / 'static',
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'core' / 'static',
+# ]
 
 # Configuración condicional de STATICFILES_STORAGE
 # En Django 5.1+, usar STORAGES['staticfiles'] en vez de STATICFILES_STORAGE (configurado abajo)
