@@ -551,6 +551,30 @@
     background: #023047 !important;
     color: #FFB703 !important;
 }
+.comments-section textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.comments-section button[type="submit"] {
+    background-color: #FFB703;
+    color: #023047;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.comments-section button[type="submit"]:hover {
+    background-color: #e5a500;
+}
 </style>
 {% endblock %}
 
@@ -676,7 +700,7 @@
 </section>
 
 <!-- Comments Section -->
-<section class="blog-comments-section">
+<section class="blog-comments-section comments-section">
     <div class="blog-comments-container">
         <h2 class="blog-comments-title">Comentarios</h2>
 
