@@ -112,7 +112,7 @@
                 {% if lesson.pk in completed_lessons %}
                 <span class="badge badge-green"><i class="fas fa-check"></i> Completada</span>
                 {% endif %}
-                <p class="lesson-description">{{ lesson.content|truncatewords:20 }}</p>
+                <p class="lesson-description">{{ lesson.content|striptags|truncatewords:20 }}</p>
                 <div class="lesson-meta">
                     <span class="badge"><i class="fas fa-globe"></i> {{ lesson.get_country_display }}</span>
                     <span class="badge"><i class="fas fa-signal"></i> {{ lesson.get_difficulty_display }}</span>

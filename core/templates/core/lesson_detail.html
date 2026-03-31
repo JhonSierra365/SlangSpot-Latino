@@ -41,7 +41,7 @@
             <section class="lesson-section">
                 <h2>Descripción</h2>
                 <div class="description-content">
-                    {{ lesson.content|linebreaks }}
+                    {{ lesson.content|safe }}
                 </div>
             </section>
 
@@ -50,7 +50,7 @@
             <section class="lesson-section">
                 <h2>Notas Culturales</h2>
                 <div class="cultural-notes">
-                    {{ lesson.cultural_notes|linebreaks }}
+                    {{ lesson.cultural_notes|safe }}
                 </div>
             </section>
             {% endif %}

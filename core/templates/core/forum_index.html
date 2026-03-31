@@ -59,7 +59,7 @@
                             <span><i class="fas fa-clock"></i> {{ post.created_at|date:"d/m/Y" }}</span>
                             <span class="badge"><i class="fas fa-tag"></i> {{ post.get_category_display }}</span>
                         </div>
-                        <p class="post-excerpt">{{ post.content|truncatewords:40 }}</p>
+                        <p class="post-excerpt">{{ post.content|striptags|truncatewords:40 }}</p>
                     </div>
                     <div class="post-stats">
                         <span><i class="fas fa-eye"></i> {{ post.views }}</span>

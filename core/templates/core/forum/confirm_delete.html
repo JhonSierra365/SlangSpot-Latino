@@ -3,7 +3,7 @@
 <div class="container mt-4" style="max-width: 600px; padding: 2rem;">
     <h3>¿Eliminar este post por moderación?</h3>
     <p><strong>{{ post.title }}</strong></p>
-    <p>{{ post.content|truncatewords:30 }}</p>
+    <p>{{ post.content|striptags|truncatewords:30 }}</p>
     <form method="POST" style="margin-top: 2rem;">
         {% csrf_token %}
         <button type="submit" class="btn" 
