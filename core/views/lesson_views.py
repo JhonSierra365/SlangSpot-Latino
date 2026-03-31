@@ -117,16 +117,27 @@ class LessonCreateView(UserPassesTestMixin, SuccessMessageMixin, CreateView):
     login_url = reverse_lazy('account_login')
     
     def form_valid(self, form):
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        
         form.instance.user = self.request.user
+        logger.info(f"Intentando guardar nueva lección: {form.instance.title}")
+        logger.info(f"Datos recibidos - Cover Image: {self.request.FILES.get('cover_image')}")
+        
         try:
             response = super().form_valid(form)
-            # Agregar información adicional al mensaje de éxito
+            logger.info(f"Lección guardada exitosamente: {form.instance.title}")
             messages.success(self.request, f'¡Lección "{form.instance.title}" creada exitosamente!')
             return response
         except Exception as e:
-            # Log del error para debugging
-            print(f"Error creando lección: {e}")
-            messages.error(self.request, 'Ha ocurrido un error al crear la lección. Por favor, inténtalo de nuevo.')
+            logger.error(f"============= ERROR CRÍTICO GUARDANDO LECCIÓN =============")
+            logger.error(f"Error creando lección '{form.instance.title}': {str(e)}")
+            logger.error(f"Traceback completo:\n{traceback.format_exc()}")
+            logger.error(f"===========================================================")
+            
+            print(f"Error crítico en console: {e}")
+            messages.error(self.request, 'Ha ocurrido un error al crear la lección. Por favor, inténtalo de nuevo. Revisa los logs.')
             return self.form_invalid(form)
 
 class LessonUpdateView(UserPassesTestMixin, OwnerRequiredMixin, SuccessMessageMixin, UpdateView):
